@@ -1,4 +1,4 @@
-# Telnyx MERN Full-Stack CRM Application
+# Telnyx MERN Full-Stack Voice Agent Lead Qualification Application
 
 ## Project Overview
 Comprehensive MERN stack CRM system with Telnyx voice agent integration for **Magnificent Worldwide Marketing & Sales Group**.

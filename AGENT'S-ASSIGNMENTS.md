@@ -26,6 +26,11 @@
                         │ │  (Vectors)    │ │
                         │ └───────────────┘ │
                         └───────────────────┘
+
+
+
+
+                        
 I want to have a graph rag so NeoJ4 will probably be added to this configuration.
 ---
 

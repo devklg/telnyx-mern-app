@@ -1,0 +1,364 @@
+version: '3.8'
+
+services:
+  # ============================================================================
+  # NEO4J - KNOWLEDGE GRAPH DATABASE
+  # ============================================================================
+  neo4j:
+    image: neo4j:5.14
+    container_name: bmad-neo4j
+    ports:
+      - "7474:7474"  # HTTP
+      - "7687:7687"  # Bolt
+    environment:
+      - NEO4J_AUTH=neo4j/password123
+      - NEO4J_PLUGINS=["apoc"]
+      - NEO4J_dbms_security_procedures_unrestricted=apoc.*
+      - NEO4J_dbms_memory_heap_max__size=2G
+    volumes:
+      - neo4j_data:/data
+      - neo4j_logs:/logs
+    healthcheck:
+      test: ["CMD", "cypher-shell", "-u", "neo4j", "-p", "password123", "RETURN 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - bmad-network
+
+  # ============================================================================
+  # MONGODB - DOCUMENT STORAGE
+  # ============================================================================
+  mongodb:
+    image: mongo:7.0
+    container_name: bmad-mongodb
+    ports:
+      - "27017:27017"
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=admin
+      - MONGO_INITDB_ROOT_PASSWORD=password123
+      - MONGO_INITDB_DATABASE=bmad_voice_agents
+    volumes:
+      - mongodb_data:/data/db
+      - mongodb_config:/data/configdb
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - bmad-network
+
+  # ============================================================================
+  # CHROMADB - VECTOR DATABASE
+  # ============================================================================
+  chromadb:
+    image: chromadb/chroma:latest
+    container_name: bmad-chromadb
+    ports:
+      - "8000:8000"
+    environment:
+      - IS_PERSISTENT=TRUE
+      - PERSIST_DIRECTORY=/chroma/chroma
+    volumes:
+      - chromadb_data:/chroma/chroma
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/heartbeat"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - bmad-network
+
+  # ============================================================================
+  # BACKEND API
+  # ============================================================================
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: bmad-backend
+    ports:
+      - "5000:5000"
+    environment:
+      - NODE_ENV=development
+      - PORT=5000
+      - NEO4J_URI=bolt://neo4j:7687
+      - NEO4J_USER=neo4j
+      - NEO4J_PASSWORD=password123
+      - NEON_CONNECTION_STRING=${NEON_CONNECTION_STRING}
+      - MONGODB_URI=mongodb://admin:password123@mongodb:27017/bmad_voice_agents?authSource=admin
+      - CHROMA_URL=http://chromadb:8000
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - TELNYX_API_KEY=${TELNYX_API_KEY}
+      - JWT_SECRET=${JWT_SECRET}
+    depends_on:
+      neo4j:
+        condition: service_healthy
+      mongodb:
+        condition: service_healthy
+      chromadb:
+        condition: service_healthy
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+    networks:
+      - bmad-network
+
+  # ============================================================================
+  # FRONTEND DASHBOARD
+  # ============================================================================
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: bmad-frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - REACT_APP_API_URL=http://localhost:5000
+    depends_on:
+      - backend
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    networks:
+      - bmad-network
+
+  # ============================================================================
+  # GRAFANA - ANALYTICS DASHBOARD
+  # ============================================================================
+  grafana:
+    image: grafana/grafana:latest
+    container_name: bmad-grafana
+    ports:
+      - "3001:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin123
+      - GF_INSTALL_PLUGINS=neo4j-graph-datasource
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./grafana/dashboards:/etc/grafana/provisioning/dashboards
+      - ./grafana/datasources:/etc/grafana/provisioning/datasources
+    networks:
+      - bmad-network
+
+  # ============================================================================
+  # 17 DEVELOPMENT AGENTS (INTERVECTOR COMMAND CENTER)
+  # ============================================================================
+  agent-david:
+    image: bmad/agent:latest
+    container_name: agent-david
+    environment:
+      - AGENT_NAME=David
+      - AGENT_ROLE=Lead Developer
+      - CHROMADB_URL=http://chromadb:8000
+    depends_on:
+      - chromadb
+    networks:
+      - bmad-network
+
+  agent-elena:
+    image: bmad/agent:latest
+    container_name: agent-elena
+    environment:
+      - AGENT_NAME=Elena
+      - AGENT_ROLE=Database Specialist
+      - CHROMADB_URL=http://chromadb:8000
+    depends_on:
+      - chromadb
+    networks:
+      - bmad-network
+
+  agent-frank:
+    image: bmad/agent:latest
+    container_name: agent-frank
+    environment:
+      - AGENT_NAME=Frank
+      - AGENT_ROLE=Frontend Developer
+      - CHROMADB_URL=http://chromadb:8000
+    depends_on:
+      - chromadb
+    networks:
+      - bmad-network
+
+  agent-grace:
+    image: bmad/agent:latest
+    container_name: agent-grace
+    environment:
+      - AGENT_NAME=Grace
+      - AGENT_ROLE=DevOps Engineer
+      - CHROMADB_URL=http://chromadb:8000
+    depends_on:
+      - chromadb
+    networks:
+      - bmad-network
+
+  agent-henry:
+    image: bmad/agent:latest
+    container_name: agent-henry
+    environment:
+      - AGENT_NAME=Henry
+      - AGENT_ROLE=Security Specialist
+      - CHROMADB_URL=http://chromadb:8000
+    depends_on:
+      - chromadb
+    networks:
+      - bmad-network
+
+  agent-iris:
+    image: bmad/agent:latest
+    container_name: agent-iris
+    environment:
+      - AGENT_NAME=Iris
+      - AGENT_ROLE=API Designer
+      - CHROMADB_URL=http://chromadb:8000
+    depends_on:
+      - chromadb
+    networks:
+      - bmad-network
+
+  agent-jack:
+    image: bmad/agent:latest
+    container_name: agent-jack
+    environment:
+      - AGENT_NAME=Jack
+      - AGENT_ROLE=Testing Engineer
+      - CHROMADB_URL=http://chromadb:8000
+    depends_on:
+      - chromadb
+    networks:
+      - bmad-network
+
+  agent-kelly:
+    image: bmad/agent:latest
+    container_name: agent-kelly
+    environment:
+      - AGENT_NAME=Kelly
+      - AGENT_ROLE=Documentation Specialist
+      - CHROMADB_URL=http://chromadb:8000
+    depends_on:
+      - chromadb
+    networks:
+      - bmad-network
+
+  agent-liam:
+    image: bmad/agent:latest
+    container_name: agent-liam
+    environment:
+      - AGENT_NAME=Liam
+      - AGENT_ROLE=Performance Optimizer
+      - CHROMADB_URL=http://chromadb:8000
+    depends_on:
+      - chromadb
+    networks:
+      - bmad-network
+
+  agent-maya:
+    image: bmad/agent:latest
+    container_name: agent-maya
+    environment:
+      - AGENT_NAME=Maya
+      - AGENT_ROLE=UX Designer
+      - CHROMADB_URL=http://chromadb:8000
+    depends_on:
+      - chromadb
+    networks:
+      - bmad-network
+
+  agent-noah:
+    image: bmad/agent:latest
+    container_name: agent-noah
+    environment:
+      - AGENT_NAME=Noah
+      - AGENT_ROLE=Infrastructure Architect
+      - CHROMADB_URL=http://chromadb:8000
+    depends_on:
+      - chromadb
+    networks:
+      - bmad-network
+
+  agent-olivia:
+    image: bmad/agent:latest
+    container_name: agent-olivia
+    environment:
+      - AGENT_NAME=Olivia
+      - AGENT_ROLE=Code Reviewer
+      - CHROMADB_URL=http://chromadb:8000
+    depends_on:
+      - chromadb
+    networks:
+      - bmad-network
+
+  agent-paul:
+    image: bmad/agent:latest
+    container_name: agent-paul
+    environment:
+      - AGENT_NAME=Paul
+      - AGENT_ROLE=Integration Specialist
+      - CHROMADB_URL=http://chromadb:8000
+    depends_on:
+      - chromadb
+    networks:
+      - bmad-network
+
+  agent-quinn:
+    image: bmad/agent:latest
+    container_name: agent-quinn
+    environment:
+      - AGENT_NAME=Quinn
+      - AGENT_ROLE=ML Engineer
+      - CHROMADB_URL=http://chromadb:8000
+    depends_on:
+      - chromadb
+    networks:
+      - bmad-network
+
+  agent-rachel:
+    image: bmad/agent:latest
+    container_name: agent-rachel
+    environment:
+      - AGENT_NAME=Rachel
+      - AGENT_ROLE=Analytics Specialist
+      - CHROMADB_URL=http://chromadb:8000
+    depends_on:
+      - chromadb
+    networks:
+      - bmad-network
+
+  agent-steve:
+    image: bmad/agent:latest
+    container_name: agent-steve
+    environment:
+      - AGENT_NAME=Steve
+      - AGENT_ROLE=Deployment Manager
+      - CHROMADB_URL=http://chromadb:8000
+    depends_on:
+      - chromadb
+    networks:
+      - bmad-network
+
+  agent-tara:
+    image: bmad/agent:latest
+    container_name: agent-tara
+    environment:
+      - AGENT_NAME=Tara
+      - AGENT_ROLE=Quality Assurance
+      - CHROMADB_URL=http://chromadb:8000
+    depends_on:
+      - chromadb
+    networks:
+      - bmad-network
+
+volumes:
+  neo4j_data:
+  neo4j_logs:
+  mongodb_data:
+  mongodb_config:
+  chromadb_data:
+  grafana_data:
+
+networks:
+  bmad-network:
+    driver: bridge

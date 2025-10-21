@@ -1,0 +1,14 @@
+# BMAD V4 - Production Deployment
+# Owner: Alex Martinez (DevOps Lead)
+# Created: 2025-10-21
+
+name: Deploy to Production
+
+on:
+  push:
+    branches: [ main ]
+    tags:
+      - 'v*'
+
+jobs:
+  # TODO: Add production deployment

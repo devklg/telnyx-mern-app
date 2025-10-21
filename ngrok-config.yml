@@ -1,0 +1,12 @@
+# BMAD V4 - Ngrok Configuration
+# Owner: Alex Martinez (DevOps Lead)
+# Created: 2025-10-21
+
+# TODO: Configure ngrok tunnels
+tunnels:
+  backend:
+    proto: http
+    addr: 5000
+  voice-agent:
+    proto: http
+    addr: 4000

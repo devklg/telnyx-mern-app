@@ -1,0 +1,7 @@
+{
+  "__comment": "BMAD V4 - Voice Metrics Dashboard",
+  "__owner": "Alex Martinez (DevOps Lead)",
+  "__created": "2025-10-21",
+  "__todo": "Define Grafana dashboard for voice metrics",
+  "dashboard": {}
+}

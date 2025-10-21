@@ -1,0 +1,12 @@
+# BMAD V4 - Staging Deployment
+# Owner: Alex Martinez (DevOps Lead)
+# Created: 2025-10-21
+
+name: Deploy to Staging
+
+on:
+  push:
+    branches: [ develop ]
+
+jobs:
+  # TODO: Add staging deployment

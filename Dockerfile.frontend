@@ -1,0 +1,16 @@
+# BMAD V4 - React Frontend Container
+# Owner: Alex Martinez (DevOps Lead)
+# Created: 2025-10-21
+
+# TODO: Define frontend Dockerfile
+FROM node:18-alpine AS builder
+
+WORKDIR /app
+
+# TODO: Copy package files
+# TODO: Install dependencies
+# TODO: Copy source and build
+
+FROM nginx:alpine
+# TODO: Copy build to nginx
+# TODO: Configure nginx

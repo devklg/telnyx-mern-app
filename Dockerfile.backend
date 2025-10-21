@@ -1,0 +1,14 @@
+# BMAD V4 - Backend API Container
+# Owner: Alex Martinez (DevOps Lead)
+# Created: 2025-10-21
+
+# TODO: Define backend Dockerfile
+FROM node:18-alpine
+
+WORKDIR /app
+
+# TODO: Copy package files
+# TODO: Install dependencies
+# TODO: Copy source code
+# TODO: Expose port
+# TODO: Start server

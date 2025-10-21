@@ -1,0 +1,10 @@
+# BMAD V4 - Voice Agent Container
+# Owner: Alex Martinez (DevOps Lead)
+# Created: 2025-10-21
+
+# TODO: Define voice agent Dockerfile
+FROM node:18-alpine
+
+WORKDIR /app
+
+# TODO: Setup voice agent

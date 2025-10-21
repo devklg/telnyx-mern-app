@@ -1,0 +1,13 @@
+# BMAD V4 - Docker Build Exclusions
+# Owner: Alex Martinez (DevOps Lead)
+# Created: 2025-10-21
+
+node_modules
+npm-debug.log
+.git
+.env
+.env.local
+dist
+*.md
+.vscode
+.idea

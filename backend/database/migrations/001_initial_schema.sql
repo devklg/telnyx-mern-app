@@ -1,0 +1,11 @@
+-- BMAD V4 - Initial Schema Migration
+-- Owner: Sarah Chen (Database Architect)
+-- Created: 2025-10-21
+
+-- TODO: Run all schema files in order
+-- \i backend/database/schema/leads.sql
+-- \i backend/database/schema/conversations.sql
+-- \i backend/database/schema/scoring.sql
+-- \i backend/database/schema/call_events.sql
+-- \i backend/database/schema/analytics.sql
+-- \i backend/database/schema/indexes.sql

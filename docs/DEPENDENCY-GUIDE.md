@@ -1,335 +1,513 @@
 # BMAD V4 - Dependency-Driven Development Guide
 
-**Purpose:** Guide agents through dependency-aware task execution  
-**Last Updated:** 2025-10-21
+**Last Updated:** 2025-10-21  
+**Version:** 1.0  
+**Purpose:** Guide for dependency-aware task execution and documentation
 
 ---
 
-## ðŸ§  DEPENDENCY PHILOSOPHY
+## ðŸŽ¯ OVERVIEW
 
-BMAD V4 uses **dependency-driven development** where:
-- Tasks are organized by their dependencies
-- High-dependency tasks are prioritized
-- Agents work on tasks only when dependencies are met
-- Neo4j tracks all dependency relationships
+This guide provides a **dependency-first** approach to the BMAD V4 project. Instead of working tasks sequentially by agent, we organize work by **dependency waves** - executing tasks that have no blocking dependencies first, then progressively working through dependent tasks.
+
+**Key Principle:** Complete foundational tasks before dependent tasks to avoid rework and ensure smooth integration.
 
 ---
 
 ## ðŸ"Š DEPENDENCY STATISTICS
 
-Based on Neo4j analysis:
+### Task Dependency Analysis
+- **Total Tasks:** 216+
+- **Most Dependent Task:** User Authentication (288 dependencies)
+- **Critical Path Tasks:** Database connection, Voice integration, Authentication
+- **Dependency Depth:** Up to 4 levels deep
 
-### Highest Dependency Tasks (288 tasks depend on these)
-1. **TASK-DL-001:** Build User Authentication System
-2. **TASK-KB-001:** Setup Testing Infrastructure & CI/CD
-
-### High Dependency Tasks (96 tasks depend on these)
-3. **TASK-RG-003:** Implement Voice-Backend Integration
-
-### Medium Dependency Tasks (48 tasks depend on these)
-4. **TASK-RG-002:** Build Frontend-Backend Integration Layer
-
-### Foundation Tasks (4 tasks depend on these)
-5. **TASK-LC-001:** Setup ChromaDB Vector Database
-6. **TASK-LC-001:** Integrate Claude API  
-7. **TASK-RW-001:** Implement Paul Barrios 12-Phase Script
-8. **TASK-DR-011:** Build Database Connection Layer
+### High-Impact Dependencies
+1. **TASK-DL-001** - User Authentication (288 dependencies)
+2. **TASK-KB-001** - Testing Infrastructure (288 dependencies)
+3. **TASK-RG-003** - Voice-Backend Integration (96 dependencies)
+4. **TASK-RG-002** - Frontend-Backend Integration (48 dependencies)
 
 ---
 
-## ðŸš¦ EXECUTION WAVES
+## ðŸŒŠ EXECUTION WAVES
 
-### Wave 0: Infrastructure Foundation
-**Status:** IN PROGRESS  
-**Agents:** Alex Martinez (DevOps), Sarah Chen (Database)
+Tasks are organized into 10 execution waves based on dependencies. Each wave must be completed before the next can begin.
 
-**Tasks:**
-- TASK-AM-001: Setup Docker Infrastructure
-- TASK-DR-011: Build Database Connection Layer
-- TASK-SC-001: Design MongoDB Schema
-- TASK-SC-002: Setup Neo4j Graph Database
+### Wave 1: Foundation (No Dependencies)
+**Duration:** Sprint 1, Days 1-3  
+**Agents:** Infrastructure team (Alex, Sarah, Marcus)
 
-**Dependencies:** None (foundational)
+**Critical Tasks:**
+- `TASK-DR-011` - Database Connection Layer
+- `TASK-AM-001` - Docker Infrastructure Setup
+- `TASK-SC-001` - MongoDB Schema Design
+- `TASK-MT-001` - Security Infrastructure
 
-**Documentation Needed:**
-- Docker setup guide
-- Database connection patterns
-- Environment configuration
+**Success Criteria:**
+- Docker containers running
+- Databases accessible
+- Security framework in place
+- CI/CD pipeline operational
+
+**Deliverables:**
+- docker-compose.yml configured
+- Database connections verified
+- Security protocols established
+- Infrastructure documentation
 
 ---
 
-### Wave 1: Authentication & Security
-**Status:** BLOCKED (waiting on Wave 0)
-**Agents:** Daniel Lee (User Mgmt), Marcus Thompson (Security)
+### Wave 2: Core Services (Depends on Wave 1)
+**Duration:** Sprint 1, Days 4-7  
+**Agents:** Backend team (David, Jennifer)
 
-**Tasks:**
-- TASK-DL-001: Build User Authentication System ⚠️ (288 dependencies)
-- TASK-DL-002: Implement RBAC
-- TASK-MT-001: Setup Security Infrastructure
+**Critical Tasks:**
+- `TASK-DR-001` - Express.js Server Foundation
+- `TASK-DR-002` - Socket.io Configuration
+- `TASK-JK-001` - Telnyx MCP Server Integration
+- `TASK-DR-010` - API Security & Rate Limiting
 
 **Dependencies:**
-- Database Connection Layer (TASK-DR-011)
-- Docker Infrastructure (TASK-AM-001)
+- Requires completed database connections
+- Requires security infrastructure
+- Requires Docker setup
 
-**Documentation Needed:**
-- Authentication flow diagrams
-- Security best practices
-- JWT implementation guide
+**Success Criteria:**
+- Express server running on port 5000
+- WebSocket connections working
+- Telnyx webhooks configured
+- API endpoints secured
 
----
-
-### Wave 2: Core Backend APIs
-**Status:** BLOCKED (waiting on Wave 1)
-**Agents:** David Rodriguez (Backend Lead)
-
-**Tasks:**
-- TASK-DR-001: Setup Express.js Server Foundation
-- TASK-DR-003: Build Lead Management API ⚠️ (2 dependencies)
-- TASK-DR-004: Build Call Queue Management
-
-**Dependencies:**
-- User Authentication (TASK-DL-001)
-- Database Layer (TASK-DR-011)
-
-**Documentation Needed:**
-- API endpoint specifications
-- Request/response schemas
-- Error handling patterns
+**Deliverables:**
+- Backend API server
+- Real-time communication layer
+- Telnyx voice integration
+- API security implementation
 
 ---
 
-### Wave 3: Voice Integration
-**Status:** BLOCKED (waiting on Wave 2)
-**Agents:** Jennifer Kim (Telnyx), Robert Wilson (Conversation)
+### Wave 3: Conversation Engine (Depends on Wave 2)
+**Duration:** Sprint 2, Days 1-5  
+**Agents:** Robert, Lisa
 
-**Tasks:**
-- TASK-JK-001: Integrate Telnyx MCP Server
-- TASK-RW-001: Implement Paul Barrios Script ⚠️ (4 dependencies)
-- TASK-JK-002: Setup Voice Event Webhooks
+**Critical Tasks:**
+- `TASK-RW-001` - Paul Barrios 12-Phase Script Implementation
+- `TASK-LC-001` - ChromaDB Vector Database Setup
+- `TASK-LC-002` - Claude API Integration
+- `TASK-RW-002` - Qualification Scoring Algorithm
 
 **Dependencies:**
-- Backend APIs (TASK-DR-001, TASK-DR-003)
-- Call Queue System (TASK-DR-004)
+- Requires backend API foundation
+- Requires database layer
+- Requires Telnyx integration
 
-**Documentation Needed:**
-- Telnyx integration guide
-- Conversation flow documentation
-- Webhook event handling
+**Success Criteria:**
+- Conversation script implemented
+- Vector database operational
+- AI responses generating
+- Qualification logic working
+
+**Deliverables:**
+- Complete conversation flow
+- ChromaDB collections configured
+- Claude API wrapper
+- Scoring algorithm implementation
 
 ---
 
-### Wave 4: AI & Vector Systems
-**Status:** BLOCKED (waiting on Wave 3)
-**Agents:** Lisa Chang (AI/Vector)
+### Wave 4: Lead Management (Depends on Waves 2-3)
+**Duration:** Sprint 2, Days 6-10  
+**Agents:** David, Robert
 
-**Tasks:**
-- TASK-LC-001: Setup ChromaDB ⚠️ (4 dependencies)
-- TASK-LC-002: Integrate Claude API ⚠️ (4 dependencies)
-- TASK-LC-003: Build Conversation Intelligence
+**Critical Tasks:**
+- `TASK-DR-003` - Lead Management API
+- `TASK-DR-004` - Call Queue Management
+- `TASK-DR-005` - Lead Qualification Scoring API
+- `TASK-DR-006` - Call State Management
 
 **Dependencies:**
-- Voice Integration (TASK-JK-001)
-- Conversation Script (TASK-RW-001)
+- Requires backend foundation
+- Requires conversation engine
+- Requires qualification logic
 
-**Documentation Needed:**
-- ChromaDB setup guide
-- Claude API integration
-- Embedding strategies
+**Success Criteria:**
+- Lead CRUD operations working
+- Call queue functional
+- Scoring API responsive
+- State management reliable
+
+**Deliverables:**
+- Lead management endpoints
+- Queue management system
+- Scoring API implementation
+- State tracking system
 
 ---
 
-### Wave 5: Frontend Foundation
-**Status:** BLOCKED (waiting on Wave 2)
-**Agents:** Michael Park (Frontend Lead)
+### Wave 5: Voice Operations (Depends on Waves 2-4)
+**Duration:** Sprint 3, Days 1-5  
+**Agents:** Jennifer, David
 
-**Tasks:**
-- TASK-MP-001: Setup React Application
-- TASK-MP-002: Build Dashboard Framework
-- TASK-MP-003: Implement Authentication UI
+**Critical Tasks:**
+- `TASK-JK-002` - Outbound Call Initiation
+- `TASK-JK-003` - Voice Event Webhooks
+- `TASK-DR-007` - Hot Transfer API
+- `TASK-DR-008` - Webhook Handler
 
 **Dependencies:**
-- Backend APIs (TASK-DR-001, TASK-DR-003)
-- Authentication System (TASK-DL-001)
+- Requires backend API
+- Requires lead management
+- Requires conversation engine
+- Requires call state management
 
-**Documentation Needed:**
-- React component patterns
-- State management guide
-- UI/UX specifications
+**Success Criteria:**
+- Outbound calls working
+- Webhooks processing events
+- Hot transfers functional
+- Call recording operational
+
+**Deliverables:**
+- Call initiation system
+- Webhook processing
+- Transfer functionality
+- Recording infrastructure
 
 ---
 
-### Wave 6: Real-time Monitoring
-**Status:** BLOCKED (waiting on Waves 4 & 5)
-**Agents:** Emma Johnson (Dashboard), Priya Patel (Voice UI)
+### Wave 6: Frontend Foundation (Depends on Waves 2-5)
+**Duration:** Sprint 3, Days 6-10  
+**Agents:** Michael, Emma, James
 
-**Tasks:**
-- TASK-EJ-001: Build Live Call Dashboard ⚠️ (1 dependency)
-- TASK-EJ-002: Real-time Transcription Display
-- TASK-PP-001: Build Voice Control Interface
+**Critical Tasks:**
+- `TASK-MP-001` - React Dashboard Foundation
+- `TASK-EJ-001` - Live Call Dashboard
+- `TASK-JT-001` - Lead List Dashboard
+- `TASK-MP-002` - Real-time Data Integration
 
 **Dependencies:**
-- Frontend Framework (TASK-MP-001, TASK-MP-002)
-- Voice Integration (TASK-JK-001)
-- Claude API (TASK-LC-002)
+- Requires backend APIs
+- Requires WebSocket layer
+- Requires lead management
+- Requires voice operations
 
-**Documentation Needed:**
-- WebSocket implementation
-- Real-time UI patterns
-- Voice control specifications
+**Success Criteria:**
+- Dashboard rendering
+- Real-time updates working
+- Lead list displaying
+- Call monitoring functional
+
+**Deliverables:**
+- React application structure
+- Dashboard components
+- Real-time integration
+- Lead management UI
 
 ---
 
-### Wave 7: Lead Management UI
-**Status:** BLOCKED (waiting on Wave 5)
-**Agents:** James Taylor (CRM UI)
+### Wave 7: Voice UI & Analytics (Depends on Wave 6)
+**Duration:** Sprint 4, Days 1-7  
+**Agents:** Priya, Angela
 
-**Tasks:**
-- TASK-JT-001: Build Lead List Dashboard ⚠️ (2 dependencies)
-- TASK-JT-002: Lead Qualification Pipeline
-- TASK-JT-003: Follow-up Management
+**Critical Tasks:**
+- `TASK-PP-001` - Voice Control Interface
+- `TASK-PP-002` - Call Monitoring UI
+- `TASK-AW-001` - Analytics Data Pipeline
+- `TASK-AW-002` - Call Metrics Dashboard
 
 **Dependencies:**
-- Frontend Framework (TASK-MP-001)
-- Lead Management API (TASK-DR-003)
+- Requires frontend foundation
+- Requires voice operations
+- Requires lead management
+- Requires call data
 
-**Documentation Needed:**
-- Lead scoring visualization
-- Pipeline workflow
-- CRM UI patterns
+**Success Criteria:**
+- Voice controls working
+- Call monitoring real-time
+- Analytics displaying
+- Metrics accurate
+
+**Deliverables:**
+- Voice control panel
+- Call monitoring interface
+- Analytics pipeline
+- Metrics dashboard
 
 ---
 
-### Wave 8: Analytics & Reporting
-**Status:** BLOCKED (waiting on Wave 7)
-**Agents:** Angela White (Analytics)
+### Wave 8: Authentication & User Management (Depends on Waves 2-6)
+**Duration:** Sprint 4, Days 8-14  
+**Agents:** Daniel, Marcus
 
-**Tasks:**
-- TASK-AW-001: Setup Analytics Pipeline
-- TASK-AW-002: Build Call Metrics Dashboard
-- TASK-AW-003: Lead Conversion Tracking
+**Critical Tasks:**
+- `TASK-DL-001` - User Authentication System
+- `TASK-DL-002` - RBAC Implementation
+- `TASK-DL-003` - User Profile Management
+- `TASK-MT-002` - TCPA Compliance
 
 **Dependencies:**
-- Lead Management UI (TASK-JT-001)
-- Call Data (TASK-DR-004)
+- Requires backend foundation
+- Requires frontend structure
+- Requires database layer
+- Requires security infrastructure
 
-**Documentation Needed:**
-- Analytics data models
-- Dashboard specifications
-- Metrics calculations
+**Success Criteria:**
+- Login/logout working
+- Role permissions enforced
+- User profiles manageable
+- Compliance checks active
+
+**Deliverables:**
+- Authentication system
+- Authorization framework
+- User management interface
+- Compliance implementation
 
 ---
 
-### Wave 9: Integration & Testing
-**Status:** BLOCKED (waiting on all previous waves)
-**Agents:** Rachel Green (Integration), Kevin Brown (QA), Nicole Davis (Voice Testing)
+### Wave 9: Integration & Testing (Depends on All Previous Waves)
+**Duration:** Sprint 5, Days 1-10  
+**Agents:** Rachel, Kevin, Nicole
 
-**Tasks:**
-- TASK-RG-002: Frontend-Backend Integration ⚠️ (48 dependencies)
-- TASK-RG-003: Voice-Backend Integration ⚠️ (96 dependencies)
-- TASK-KB-001: Testing Infrastructure ⚠️ (288 dependencies)
-
-**Dependencies:**
-- ALL previous waves must be complete
-
-**Documentation Needed:**
-- Integration testing guide
-- Voice testing procedures
-- QA checklists
-
----
-
-### Wave 10: Performance & Optimization
-**Status:** BLOCKED (waiting on Wave 9)
-**Agents:** Thomas Garcia (Performance)
-
-**Tasks:**
-- TASK-TG-001: Performance Optimization
-- TASK-TG-002: Caching Implementation
-- TASK-TG-003: Load Testing
+**Critical Tasks:**
+- `TASK-RG-002` - Frontend-Backend Integration
+- `TASK-RG-003` - Voice-Backend Integration
+- `TASK-KB-001` - Testing Infrastructure
+- `TASK-KB-002` - End-to-End Testing
 
 **Dependencies:**
-- Integration Complete (TASK-RG-002, TASK-RG-003)
-- Testing Infrastructure (TASK-KB-001)
+- Requires all components built
+- Requires authentication working
+- Requires voice operations functional
+- Requires frontend complete
 
-**Documentation Needed:**
+**Success Criteria:**
+- All integrations working
+- Test coverage >80%
+- E2E tests passing
+- Performance acceptable
+
+**Deliverables:**
+- Integration utilities
+- Test suite implementation
 - Performance benchmarks
-- Optimization strategies
-- Monitoring setup
+- Integration documentation
 
 ---
 
-## ðŸ"§ HOW TO USE THIS GUIDE
+### Wave 10: Optimization & Analytics (Depends on Wave 9)
+**Duration:** Sprint 6, Ongoing  
+**Agents:** Thomas, Daniel
 
-### For Agents Starting Work
+**Critical Tasks:**
+- `TASK-TG-001` - Performance Optimization
+- `TASK-TG-002` - Caching Implementation
+- `TASK-AW-006` - Revenue Forecasting
+- `TASK-AW-010` - Advanced Analytics
 
-1. **Check Your Wave Status**
-   ```cypher
-   MATCH (a:Agent {name: "Your Name"})-[:HAS_TASK]->(t:Task)
-   RETURN t.id, t.title, t.status
-   ```
+**Dependencies:**
+- Requires complete system
+- Requires integration tested
+- Requires real usage data
+- Requires performance baseline
 
-2. **Check Task Dependencies**
-   ```cypher
-   MATCH (t:Task {id: "TASK-XX-001"})-[:DEPENDS_ON]->(dep:Task)
-   RETURN dep.id, dep.title, dep.status
-   ```
+**Success Criteria:**
+- Response times <200ms
+- Cache hit ratio >70%
+- Forecasts accurate
+- Analytics actionable
 
-3. **Verify All Dependencies Complete**
-   - All dependency tasks must have `status: 'complete'`
-   - If any dependency is incomplete, wait or escalate
-
-4. **Review Documentation Requirements**
-   - Check this guide for your wave's documentation needs
-   - Create/update documentation as you complete tasks
-
-### For Project Manager
-
-1. **Monitor Wave Progress**
-   ```cypher
-   MATCH (t:Task)
-   WHERE t.status = 'complete'
-   RETURN COUNT(t) as completed
-   ```
-
-2. **Identify Blockers**
-   ```cypher
-   MATCH (t:Task)-[:DEPENDS_ON]->(dep:Task)
-   WHERE t.status = 'not_started' AND dep.status <> 'complete'
-   RETURN t.id, t.title, dep.id as blocker, dep.status
-   ```
-
-3. **Unblock Next Wave**
-   - Ensure Wave N is 100% complete before starting Wave N+1
-   - Update task statuses in Neo4j
-   - Notify agents when their wave is unblocked
+**Deliverables:**
+- Performance optimizations
+- Caching layer
+- Forecasting models
+- Advanced analytics
 
 ---
 
-## âš ï¸ CRITICAL DEPENDENCY RULES
+## ðŸ"' NEO4J QUERIES FOR DEPENDENCY MANAGEMENT
 
-1. **Never start a task with incomplete dependencies**
-2. **Always update task status in Neo4j when complete**
-3. **Document decisions that affect dependent tasks**
-4. **Communicate blockers immediately**
-5. **Review dependencies before starting each task**
-
----
-
-## ðŸ"Š DEPENDENCY VISUALIZATION
-
-Use Neo4j Browser to visualize:
-
+### Find Tasks with No Dependencies (Wave 1)
 ```cypher
-// View all dependencies for a task
-MATCH path = (t:Task {id: "TASK-XX-001"})-[:DEPENDS_ON*]->(dep:Task)
-RETURN path
+MATCH (t:Task)
+WHERE NOT (t)-[:DEPENDS_ON]->()
+  AND t.status = 'not_started'
+RETURN t.id, t.title, t.priority
+ORDER BY t.priority DESC, t.id
+```
 
-// View entire dependency graph
-MATCH (t:Task)-[r:DEPENDS_ON]->(dep:Task)
-RETURN t, r, dep
-LIMIT 100
+### Find Next Available Tasks for an Agent
+```cypher
+MATCH (a:Agent {name: 'Agent Name'})-[:HAS_TASK]->(t:Task)
+WHERE t.status = 'not_started'
+  AND NOT EXISTS {
+    MATCH (t)-[:DEPENDS_ON]->(dep:Task)
+    WHERE dep.status <> 'completed'
+  }
+RETURN t.id, t.title, t.priority
+ORDER BY t.priority DESC
+```
+
+### Find Blocking Tasks
+```cypher
+MATCH (t:Task {id: 'TASK-XX-001'})-[:DEPENDS_ON]->(dep:Task)
+WHERE dep.status <> 'completed'
+RETURN dep.id, dep.title, dep.status, dep.priority
+```
+
+### Find What You're Blocking
+```cypher
+MATCH (blocked:Task)-[:DEPENDS_ON]->(t:Task)
+WHERE t.id STARTS WITH 'TASK-XX'
+  AND t.status <> 'completed'
+RETURN blocked.id, blocked.title, blocked.priority,
+       blocked.agent as blocked_agent
+ORDER BY blocked.priority DESC
+```
+
+### Get Dependency Chain
+```cypher
+MATCH path = (t:Task {id: 'TASK-XX-001'})-[:DEPENDS_ON*]->(dep:Task)
+RETURN [node in nodes(path) | node.id] as dependency_chain,
+       length(path) as depth
+ORDER BY depth DESC
+```
+
+### Find Critical Path (Longest Dependency Chain)
+```cypher
+MATCH path = (t:Task)-[:DEPENDS_ON*]->(dep:Task)
+WHERE NOT (dep)-[:DEPENDS_ON]->()
+WITH path, length(path) as depth
+ORDER BY depth DESC
+LIMIT 1
+RETURN [node in nodes(path) | {
+  id: node.id,
+  title: node.title,
+  status: node.status
+}] as critical_path
 ```
 
 ---
 
-**Remember:** Dependencies exist for a reason. Following them ensures quality, stability, and successful integration!
+## ðŸ"‹ DEPENDENCY CHECKLIST
+
+### Before Starting a Task
+- [ ] Query Neo4j for task dependencies
+- [ ] Verify all dependencies are completed
+- [ ] Review dependency task deliverables
+- [ ] Check for API contracts/interfaces
+- [ ] Verify database schemas exist
+- [ ] Confirm required services are running
+
+### While Working on a Task
+- [ ] Document your work in real-time
+- [ ] Update task status in Neo4j
+- [ ] Commit code with proper messages
+- [ ] Create PRs for review
+- [ ] Test integration points
+- [ ] Update API documentation
+
+### After Completing a Task
+- [ ] Mark task as completed in Neo4j
+- [ ] Update Chroma with learnings
+- [ ] Notify dependent agents
+- [ ] Document any API changes
+- [ ] Push all code to GitHub
+- [ ] Update project documentation
+
+---
+
+## âš ï¸ COMMON DEPENDENCY PITFALLS
+
+### 1. Assuming Dependencies Are Complete
+**Problem:** Starting work without verifying dependencies  
+**Solution:** Always query Neo4j for dependency status first
+
+### 2. Breaking API Contracts
+**Problem:** Changing interfaces without notifying dependents  
+**Solution:** Document all interface changes and notify affected agents
+
+### 3. Skipping Integration Testing
+**Problem:** Assuming your work integrates without testing  
+**Solution:** Test integration points before marking complete
+
+### 4. Ignoring Downstream Impact
+**Problem:** Not considering who depends on your work  
+**Solution:** Query "what am I blocking" regularly
+
+### 5. Working in Isolation
+**Problem:** Not collaborating with related agents  
+**Solution:** Use COLLABORATES_WITH relationships in Neo4j
+
+---
+
+## ðŸš€ BEST PRACTICES
+
+### 1. Wave-Based Planning
+- Plan work by dependency waves, not by agent
+- Complete entire waves before moving forward
+- Hold wave retrospectives
+
+### 2. Early Integration
+- Integrate continuously, not at the end
+- Test integration points immediately
+- Use feature flags for incomplete work
+
+### 3. Clear Contracts
+- Document all APIs and interfaces
+- Use OpenAPI/Swagger specifications
+- Version your APIs properly
+
+### 4. Proactive Communication
+- Notify dependents of progress
+- Report blockers immediately
+- Share learnings in Chroma
+
+### 5. Incremental Delivery
+- Deliver smallest functional units
+- Enable dependent work ASAP
+- Don't wait for perfection
+
+---
+
+## ðŸ"Š TRACKING PROGRESS
+
+### Neo4j Task Status Values
+```
+not_started -> in_progress -> testing -> completed -> deployed
+```
+
+### Update Task Status
+```cypher
+MATCH (t:Task {id: 'TASK-XX-001'})
+SET t.status = 'completed',
+    t.completed_date = datetime()
+RETURN t
+```
+
+### Get Wave Progress
+```cypher
+MATCH (t:Task)
+WHERE NOT (t)-[:DEPENDS_ON]->(:Task)
+WITH count(t) as wave1_total
+MATCH (t:Task)
+WHERE NOT (t)-[:DEPENDS_ON]->(:Task)
+  AND t.status = 'completed'
+RETURN count(t) as completed,
+       wave1_total as total,
+       (count(t) * 100.0 / wave1_total) as progress_pct
+```
+
+---
+
+## ðŸ"š RELATED DOCUMENTATION
+
+- `FRAMEWORK-DOCUMENTATION.md` - Technical framework guide
+- `AGENT-ONBOARDING-CHECKLIST.md` - Agent activation steps
+- `GIT-WORKFLOW.md` - Git and PR process
+- `BMAD-V4-EXECUTION-PLAN-V3.md` - Overall execution plan
+- Individual agent `*_STORY.md` files
+
+---
+
+**Remember:** Dependencies exist to ensure quality and smooth integration. Working dependency-aware prevents rework and enables parallel execution where possible.

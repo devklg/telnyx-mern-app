@@ -31,7 +31,7 @@ npm install
 npm run dev
 ```
 
-Runs at http://localhost:3000
+Runs at http://localhost:3500
 
 ### Build
 
@@ -50,7 +50,7 @@ npm run preview
 Copy `.env.example` to `.env.local` and configure:
 
 ```env
-VITE_API_URL=http://localhost:5000/api
+VITE_API_URL=http://localhost:3550/api
 ```
 
 ## Project Structure

@@ -16,6 +16,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(morgan('combined'));
 
 // Routes
+app.use('/api/auth', require('./routes/auth.routes'));
 app.use('/api/leads', require('./routes/leads.routes'));
 app.use('/api/calls', require('./routes/calls.routes'));
 app.use('/api/voice', require('./routes/voice.routes'));

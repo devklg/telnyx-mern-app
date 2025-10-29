@@ -1,16 +1,27 @@
 # BMAD V4 Frontend
 
-React + Vite + Tailwind CSS application for lead qualification and management.
+React + Vite + Tailwind CSS v4 application for lead qualification and management.
 
 ## Tech Stack
 
 - **React 18** - UI Framework
-- **Vite** - Build Tool
-- **Tailwind CSS** - Styling
-- **React Router** - Navigation
+- **Vite 5** - Build Tool
+- **Tailwind CSS v4** - Styling (CSS-first configuration)
+- **React Router 6** - Navigation
 - **Axios** - API Client
 - **Lucide React** - Icons
 - **Recharts** - Charts & Analytics
+
+## Magnificent Worldwide Brand Styling
+
+✨ **Brand Colors:**
+- Primary Blue: `#3b82f6`
+- Accent Gold: `#facc15`
+- Background: Dark slate (`#0f172a`)
+
+🎨 **Typography:**
+- Headings: Orbitron (techy, futuristic)
+- Body: Poppins (clean, readable)
 
 ## Getting Started
 
@@ -53,6 +64,23 @@ Copy `.env.example` to `.env.local` and configure:
 VITE_API_URL=http://localhost:3550/api
 ```
 
+## Tailwind CSS v4 Configuration
+
+Tailwind v4 uses **CSS-first configuration** via the `@theme` directive in `src/index.css`:
+
+```css
+@import "tailwindcss";
+
+@theme {
+  --color-primary-500: #3b82f6;
+  --color-accent-400: #facc15;
+  --font-heading: "Orbitron", sans-serif;
+  --font-body: "Poppins", sans-serif;
+}
+```
+
+No `tailwind.config.js` needed!
+
 ## Project Structure
 
 ```
@@ -73,11 +101,11 @@ frontend/
 │   ├── utils/            # Utility functions
 │   ├── App.jsx           # Main app component
 │   ├── main.jsx          # Entry point
-│   └── index.css         # Global styles
+│   └── index.css         # Global styles + Tailwind v4 config
 ├── .env.example          # Environment template
 ├── package.json
 ├── vite.config.js
-├── tailwind.config.js
+├── postcss.config.js     # Tailwind v4 PostCSS plugin
 └── README.md
 ```
 
@@ -87,6 +115,17 @@ frontend/
 - `npm run build` - Build for production
 - `npm run preview` - Preview production build
 - `npm run lint` - Run ESLint
+
+## Component Styling Pattern
+
+Use Tailwind v4's utility classes with brand variables:
+
+```jsx
+<div className="card">
+  <h2 className="gradient-text">Welcome</h2>
+  <button className="btn-primary">Get Started</button>
+</div>
+```
 
 ## Agents Assigned
 

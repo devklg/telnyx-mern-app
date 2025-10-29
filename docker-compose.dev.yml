@@ -1,0 +1,137 @@
+version: '3.8'
+
+# ===========================================
+# BMAD V4 - Development Docker Compose
+# ===========================================
+# Optimized for local development with hot-reload
+# Run with: docker-compose -f docker-compose.dev.yml up
+# ===========================================
+
+services:
+  # ===========================================
+  # DATABASE SERVICES ONLY
+  # ===========================================
+  # For development, run frontend/backend locally with npm run dev
+  # This compose file only provides database services
+
+  mongodb:
+    container_name: bmad-dev-mongodb
+    image: mongo:7
+    ports:
+      - "27017:27017"
+    environment:
+      - MONGO_INITDB_DATABASE=bmad_v4_dev
+    volumes:
+      - mongodb_dev_data:/data/db
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  postgres:
+    container_name: bmad-dev-postgres
+    image: postgres:16-alpine
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_DB=bmad_v4_dev
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=devpassword
+    volumes:
+      - postgres_dev_data:/var/lib/postgresql/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  neo4j:
+    container_name: bmad-dev-neo4j
+    image: neo4j:5
+    ports:
+      - "7474:7474"
+      - "7687:7687"
+    environment:
+      - NEO4J_AUTH=neo4j/devpassword
+      - NEO4J_dbms_memory_pagecache_size=512M
+      - NEO4J_dbms_memory_heap_initial__size=512M
+      - NEO4J_dbms_memory_heap_max__size=1G
+    volumes:
+      - neo4j_dev_data:/data
+    restart: unless-stopped
+
+  redis:
+    container_name: bmad-dev-redis
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_dev_data:/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  chroma:
+    container_name: bmad-dev-chroma
+    image: chromadb/chroma:latest
+    ports:
+      - "8000:8000"
+    environment:
+      - IS_PERSISTENT=TRUE
+      - ANONYMIZED_TELEMETRY=FALSE
+    volumes:
+      - chroma_dev_data:/chroma/chroma
+    restart: unless-stopped
+
+  # ===========================================
+  # OPTIONAL: Database Admin UIs
+  # ===========================================
+
+  mongo-express:
+    container_name: bmad-dev-mongo-express
+    image: mongo-express:latest
+    ports:
+      - "8081:8081"
+    environment:
+      - ME_CONFIG_MONGODB_URL=mongodb://mongodb:27017/
+      - ME_CONFIG_BASICAUTH_USERNAME=admin
+      - ME_CONFIG_BASICAUTH_PASSWORD=admin
+    depends_on:
+      - mongodb
+    restart: unless-stopped
+
+  pgadmin:
+    container_name: bmad-dev-pgadmin
+    image: dpage/pgadmin4:latest
+    ports:
+      - "5050:80"
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=admin@bmad.local
+      - PGADMIN_DEFAULT_PASSWORD=admin
+      - PGADMIN_CONFIG_SERVER_MODE=False
+    volumes:
+      - pgadmin_dev_data:/var/lib/pgadmin
+    depends_on:
+      - postgres
+    restart: unless-stopped
+
+volumes:
+  mongodb_dev_data:
+    name: bmad-dev-mongodb-data
+  postgres_dev_data:
+    name: bmad-dev-postgres-data
+  neo4j_dev_data:
+    name: bmad-dev-neo4j-data
+  redis_dev_data:
+    name: bmad-dev-redis-data
+  chroma_dev_data:
+    name: bmad-dev-chroma-data
+  pgadmin_dev_data:
+    name: bmad-dev-pgadmin-data

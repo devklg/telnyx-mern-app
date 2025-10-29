@@ -1,92 +1,380 @@
 version: '3.8'
 
+# ===========================================
+# BMAD V4 - Docker Compose Configuration
+# ===========================================
+# Production-ready multi-container orchestration
+# Run with: docker-compose up -d
+# ===========================================
+
 services:
+  # ===========================================
+  # APPLICATION SERVICES
+  # ===========================================
+
   frontend:
+    container_name: bmad-frontend
     build:
       context: ./frontend
       dockerfile: ../infrastructure/docker/Dockerfile.frontend
     ports:
-      - "3500:3500"
+      - "${FRONTEND_PORT:-3500}:3500"
     environment:
-      - VITE_API_URL=http://backend:3550/api
+      - VITE_API_URL=http://localhost:${BACKEND_PORT:-3550}/api
+      - VITE_APP_NAME=${VITE_APP_NAME:-BMAD V4}
+      - VITE_APP_VERSION=${VITE_APP_VERSION:-1.0.0}
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
+    networks:
+      - bmad-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3500"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   backend:
+    container_name: bmad-backend
     build:
       context: ./backend
       dockerfile: ../infrastructure/docker/Dockerfile.backend
     ports:
-      - "3550:3550"
+      - "${BACKEND_PORT:-3550}:3550"
     environment:
-      - NODE_ENV=production
-      - MONGODB_URI=mongodb://mongodb:27017/bmad_v4
-      - POSTGRES_URL=postgresql://postgres:password@postgres:5432/bmad_v4
+      # Server Configuration
+      - NODE_ENV=${NODE_ENV:-production}
+      - PORT=${PORT:-3550}
+      - FRONTEND_URL=${FRONTEND_URL:-http://localhost:3500}
+
+      # Database URLs (using container names for internal networking)
+      - MONGODB_URI=mongodb://mongodb:27017/${MONGODB_DB:-bmad_v4}
+      - POSTGRES_URL=postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-password}@postgres:5432/${POSTGRES_DB:-bmad_v4}
       - NEO4J_URI=bolt://neo4j:7687
+      - NEO4J_USER=${NEO4J_USER:-neo4j}
+      - NEO4J_PASSWORD=${NEO4J_PASSWORD:-password}
       - REDIS_URL=redis://redis:6379
+      - CHROMA_URL=http://chroma:8000
+
+      # Telnyx Configuration
+      - TELNYX_API_KEY=${TELNYX_API_KEY}
+      - TELNYX_PUBLIC_KEY=${TELNYX_PUBLIC_KEY}
+      - TELNYX_APP_ID=${TELNYX_APP_ID}
+      - TELNYX_PHONE_NUMBER=${TELNYX_PHONE_NUMBER}
+      - TELNYX_WEBHOOK_URL=${TELNYX_WEBHOOK_URL}
+
+      # Security
+      - JWT_SECRET=${JWT_SECRET}
+      - JWT_EXPIRES_IN=${JWT_EXPIRES_IN:-7d}
+      - SESSION_SECRET=${SESSION_SECRET}
+
+      # CORS
+      - CORS_ORIGIN=${CORS_ORIGIN:-http://localhost:3500}
+
+      # Logging
+      - LOG_LEVEL=${LOG_LEVEL:-info}
+      - MORGAN_FORMAT=${MORGAN_FORMAT:-combined}
+
+      # Voice Agent
+      - VOICE_AGENT_URL=http://voice-agent:3650
     depends_on:
-      - mongodb
-      - postgres
-      - neo4j
-      - redis
-      - chroma
+      mongodb:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+      neo4j:
+        condition: service_started
+      redis:
+        condition: service_healthy
+      chroma:
+        condition: service_started
+    networks:
+      - bmad-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "node", "/app/infrastructure/scripts/healthcheck.js"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    volumes:
+      - backend_logs:/app/logs
+      - backend_uploads:/app/uploads
 
   voice-agent:
+    container_name: bmad-voice-agent
     build:
       context: ./voice-agent
       dockerfile: ../infrastructure/docker/Dockerfile.voice
     ports:
-      - "3650:3650"
+      - "${VOICE_AGENT_PORT:-3650}:3650"
     environment:
+      - NODE_ENV=${NODE_ENV:-production}
+      - BACKEND_URL=http://backend:3550
       - TELNYX_API_KEY=${TELNYX_API_KEY}
+      - TELNYX_PUBLIC_KEY=${TELNYX_PUBLIC_KEY}
+      - TELNYX_APP_ID=${TELNYX_APP_ID}
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
+    networks:
+      - bmad-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3650/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # ===========================================
+  # DATABASE SERVICES
+  # ===========================================
 
   mongodb:
+    container_name: bmad-mongodb
     image: mongo:7
     ports:
-      - "27017:27017"
+      - "${MONGODB_PORT:-27017}:27017"
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=${MONGODB_ROOT_USER:-root}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGODB_ROOT_PASSWORD:-rootpassword}
+      - MONGO_INITDB_DATABASE=${MONGODB_DB:-bmad_v4}
     volumes:
       - mongodb_data:/data/db
+      - mongodb_config:/data/configdb
+    networks:
+      - bmad-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   postgres:
+    container_name: bmad-postgres
     image: postgres:16-alpine
     ports:
-      - "5432:5432"
+      - "${POSTGRES_PORT:-5432}:5432"
     environment:
-      - POSTGRES_DB=bmad_v4
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=${POSTGRES_DB:-bmad_v4}
+      - POSTGRES_USER=${POSTGRES_USER:-postgres}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-password}
+      - PGDATA=/var/lib/postgresql/data/pgdata
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./backend/database/migrations:/docker-entrypoint-initdb.d
+    networks:
+      - bmad-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-bmad_v4}"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   neo4j:
+    container_name: bmad-neo4j
     image: neo4j:5
     ports:
-      - "7474:7474"
-      - "7687:7687"
+      - "${NEO4J_HTTP_PORT:-7474}:7474"
+      - "${NEO4J_BOLT_PORT:-7687}:7687"
     environment:
-      - NEO4J_AUTH=neo4j/password
+      - NEO4J_AUTH=${NEO4J_USER:-neo4j}/${NEO4J_PASSWORD:-password}
+      - NEO4J_dbms_memory_pagecache_size=1G
+      - NEO4J_dbms_memory_heap_initial__size=1G
+      - NEO4J_dbms_memory_heap_max__size=2G
+      - NEO4J_apoc_export_file_enabled=true
+      - NEO4J_apoc_import_file_enabled=true
+      - NEO4J_apoc_import_file_use__neo4j__config=true
     volumes:
       - neo4j_data:/data
+      - neo4j_logs:/logs
+      - neo4j_import:/var/lib/neo4j/import
+      - neo4j_plugins:/plugins
+    networks:
+      - bmad-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:7474"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   redis:
+    container_name: bmad-redis
     image: redis:7-alpine
     ports:
-      - "6379:6379"
+      - "${REDIS_PORT:-6379}:6379"
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-}
     volumes:
       - redis_data:/data
+    networks:
+      - bmad-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   chroma:
+    container_name: bmad-chroma
     image: chromadb/chroma:latest
     ports:
-      - "8000:8000"
+      - "${CHROMA_PORT:-8000}:8000"
+    environment:
+      - IS_PERSISTENT=TRUE
+      - ANONYMIZED_TELEMETRY=${CHROMA_TELEMETRY:-FALSE}
     volumes:
       - chroma_data:/chroma/chroma
+    networks:
+      - bmad-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8000/api/v1/heartbeat"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
+  # ===========================================
+  # MONITORING SERVICES (Optional - Uncomment to Enable)
+  # ===========================================
+
+  # prometheus:
+  #   container_name: bmad-prometheus
+  #   image: prom/prometheus:latest
+  #   ports:
+  #     - "${PROMETHEUS_PORT:-9090}:9090"
+  #   command:
+  #     - '--config.file=/etc/prometheus/prometheus.yml'
+  #     - '--storage.tsdb.path=/prometheus'
+  #     - '--web.console.libraries=/etc/prometheus/console_libraries'
+  #     - '--web.console.templates=/etc/prometheus/consoles'
+  #     - '--web.enable-lifecycle'
+  #   volumes:
+  #     - ./infrastructure/monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+  #     - prometheus_data:/prometheus
+  #   networks:
+  #     - bmad-network
+  #   restart: unless-stopped
+  #   logging:
+  #     driver: "json-file"
+  #     options:
+  #       max-size: "10m"
+  #       max-file: "3"
+
+  # grafana:
+  #   container_name: bmad-grafana
+  #   image: grafana/grafana:latest
+  #   ports:
+  #     - "${GRAFANA_PORT:-3000}:3000"
+  #   environment:
+  #     - GF_SECURITY_ADMIN_USER=${GRAFANA_USER:-admin}
+  #     - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-admin}
+  #     - GF_USERS_ALLOW_SIGN_UP=false
+  #   volumes:
+  #     - grafana_data:/var/lib/grafana
+  #     - ./infrastructure/monitoring/grafana-dashboard.json:/etc/grafana/provisioning/dashboards/dashboard.json
+  #   depends_on:
+  #     - prometheus
+  #   networks:
+  #     - bmad-network
+  #   restart: unless-stopped
+  #   logging:
+  #     driver: "json-file"
+  #     options:
+  #       max-size: "10m"
+  #       max-file: "3"
+
+# ===========================================
+# NETWORKS
+# ===========================================
+networks:
+  bmad-network:
+    driver: bridge
+    name: bmad-network
+
+# ===========================================
+# VOLUMES
+# ===========================================
 volumes:
+  # Application volumes
+  backend_logs:
+    name: bmad-backend-logs
+  backend_uploads:
+    name: bmad-backend-uploads
+
+  # Database volumes
   mongodb_data:
+    name: bmad-mongodb-data
+  mongodb_config:
+    name: bmad-mongodb-config
   postgres_data:
+    name: bmad-postgres-data
   neo4j_data:
+    name: bmad-neo4j-data
+  neo4j_logs:
+    name: bmad-neo4j-logs
+  neo4j_import:
+    name: bmad-neo4j-import
+  neo4j_plugins:
+    name: bmad-neo4j-plugins
   redis_data:
+    name: bmad-redis-data
   chroma_data:
+    name: bmad-chroma-data
+
+  # Monitoring volumes (if enabled)
+  # prometheus_data:
+  #   name: bmad-prometheus-data
+  # grafana_data:
+  #   name: bmad-grafana-data

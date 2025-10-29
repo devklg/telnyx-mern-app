@@ -1,16 +1,147 @@
-# React + Vite
+# BMAD V4 Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+React + Vite + Tailwind CSS v4 application for lead qualification and management.
 
-Currently, two official plugins are available:
+## Tech Stack
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- **React 18** - UI Framework
+- **Vite 5** - Build Tool
+- **Tailwind CSS v4** - Styling (CSS-first configuration)
+- **React Router 6** - Navigation
+- **Axios** - API Client
+- **Lucide React** - Icons
+- **Recharts** - Charts & Analytics
 
-## React Compiler
+## Magnificent Worldwide Brand Styling
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+✨ **Brand Colors:**
+- Primary Blue: `#3b82f6`
+- Accent Gold: `#facc15`
+- Background: Dark slate (`#0f172a`)
 
-## Expanding the ESLint configuration
+🎨 **Typography:**
+- Headings: Orbitron (techy, futuristic)
+- Body: Poppins (clean, readable)
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## Getting Started
+
+### Prerequisites
+
+- Node.js 18+
+- npm or yarn
+
+### Installation
+
+```bash
+npm install
+```
+
+### Development
+
+```bash
+npm run dev
+```
+
+Runs at http://localhost:3500
+
+### Build
+
+```bash
+npm run build
+```
+
+### Preview Production Build
+
+```bash
+npm run preview
+```
+
+## Environment Variables
+
+Copy `.env.example` to `.env.local` and configure:
+
+```env
+VITE_API_URL=http://localhost:3550/api
+```
+
+## Tailwind CSS v4 Configuration
+
+Tailwind v4 uses **CSS-first configuration** via the `@theme` directive in `src/index.css`:
+
+```css
+@import "tailwindcss";
+
+@theme {
+  --color-primary-500: #3b82f6;
+  --color-accent-400: #facc15;
+  --font-heading: "Orbitron", sans-serif;
+  --font-body: "Poppins", sans-serif;
+}
+```
+
+No `tailwind.config.js` needed!
+
+## Project Structure
+
+```
+frontend/
+├── public/
+├── src/
+│   ├── assets/           # Images, fonts, etc.
+│   ├── components/       # React components
+│   │   ├── common/       # Shared components
+│   │   ├── dashboard/    # Dashboard components
+│   │   ├── leads/        # Lead management
+│   │   ├── voice/        # Voice controls
+│   │   └── analytics/    # Analytics & reports
+│   ├── contexts/         # React contexts
+│   ├── hooks/            # Custom hooks
+│   ├── pages/            # Page components
+│   ├── services/         # API services
+│   ├── utils/            # Utility functions
+│   ├── App.jsx           # Main app component
+│   ├── main.jsx          # Entry point
+│   └── index.css         # Global styles + Tailwind v4 config
+├── .env.example          # Environment template
+├── package.json
+├── vite.config.js
+├── postcss.config.js     # Tailwind v4 PostCSS plugin
+└── README.md
+```
+
+## Available Scripts
+
+- `npm run dev` - Start development server
+- `npm run build` - Build for production
+- `npm run preview` - Preview production build
+- `npm run lint` - Run ESLint
+
+## Component Styling Pattern
+
+Use Tailwind v4's utility classes with brand variables:
+
+```jsx
+<div className="card">
+  <h2 className="gradient-text">Welcome</h2>
+  <button className="btn-primary">Get Started</button>
+</div>
+```
+
+## Agents Assigned
+
+- **Michael Park** - Frontend Lead (Foundation)
+- **Emma Johnson** - Call Monitoring UI
+- **James Taylor** - Lead Management UI
+- **Priya Patel** - Voice Control UI
+- **Angela White** - Analytics & Reports UI
+
+## Next Steps
+
+1. Run `npm install` to install dependencies
+2. Create `.env.local` from `.env.example`
+3. Run `npm run dev` to start development server
+4. Begin building components in `src/components/`
+
+## Documentation
+
+For detailed component documentation and development guidelines, see the project wiki.

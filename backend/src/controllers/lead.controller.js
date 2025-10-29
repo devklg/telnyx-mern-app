@@ -1,154 +1,47 @@
-/**
- * BMAD V4 - Lead Management Logic
- * 
- * @description Controller for lead CRUD operations
- * @owner David Rodriguez (Backend Lead)
- * @created 2025-10-21
- */
+const Lead = require('../database/mongodb/schemas/lead.schema');
 
-const { catchAsync, AppError } = require('../middleware/error.middleware');
-const leadService = require('../services/lead.service');
-const logger = require('../utils/logger');
-
-/**
- * Get all leads with pagination and filtering
- */
-exports.getAllLeads = catchAsync(async (req, res) => {
-  const { page = 1, limit = 20, status, source, sort = 'createdAt', order = 'desc' } = req.query;
-
-  const leads = await leadService.getAllLeads({
-    page: parseInt(page),
-    limit: parseInt(limit),
-    status,
-    source,
-    sort,
-    order
-  });
-
-  res.json({
-    success: true,
-    data: leads,
-    pagination: {
-      page: parseInt(page),
-      limit: parseInt(limit),
-      total: leads.total
-    }
-  });
-});
-
-/**
- * Get single lead by ID
- */
-exports.getLeadById = catchAsync(async (req, res) => {
-  const { id } = req.params;
-
-  const lead = await leadService.getLeadById(id);
-
-  if (!lead) {
-    throw new AppError('Lead not found', 404);
+exports.getAll = async (req, res, next) => {
+  try {
+    const leads = await Lead.find().sort({ createdAt: -1 });
+    res.json({ success: true, data: leads });
+  } catch (error) {
+    next(error);
   }
+};
 
-  res.json({
-    success: true,
-    data: lead
-  });
-});
-
-/**
- * Create new lead
- */
-exports.createLead = catchAsync(async (req, res) => {
-  const leadData = req.body;
-
-  const lead = await leadService.createLead(leadData);
-
-  logger.info(`Lead created: ${lead.id}`);
-
-  // Emit socket event
-  req.app.get('io').emit('lead:created', lead);
-
-  res.status(201).json({
-    success: true,
-    data: lead,
-    message: 'Lead created successfully'
-  });
-});
-
-/**
- * Update lead
- */
-exports.updateLead = catchAsync(async (req, res) => {
-  const { id } = req.params;
-  const updateData = req.body;
-
-  const lead = await leadService.updateLead(id, updateData);
-
-  if (!lead) {
-    throw new AppError('Lead not found', 404);
+exports.getById = async (req, res, next) => {
+  try {
+    const lead = await Lead.findById(req.params.id);
+    if (!lead) return res.status(404).json({ success: false, message: 'Lead not found' });
+    res.json({ success: true, data: lead });
+  } catch (error) {
+    next(error);
   }
+};
 
-  logger.info(`Lead updated: ${id}`);
-
-  // Emit socket event
-  req.app.get('io').emit('lead:updated', lead);
-
-  res.json({
-    success: true,
-    data: lead,
-    message: 'Lead updated successfully'
-  });
-});
-
-/**
- * Delete lead
- */
-exports.deleteLead = catchAsync(async (req, res) => {
-  const { id } = req.params;
-
-  await leadService.deleteLead(id);
-
-  logger.info(`Lead deleted: ${id}`);
-
-  // Emit socket event
-  req.app.get('io').emit('lead:deleted', { id });
-
-  res.json({
-    success: true,
-    message: 'Lead deleted successfully'
-  });
-});
-
-/**
- * Bulk import leads
- */
-exports.bulkImportLeads = catchAsync(async (req, res) => {
-  const { leads } = req.body;
-
-  if (!Array.isArray(leads) || leads.length === 0) {
-    throw new AppError('Invalid leads data', 400);
+exports.create = async (req, res, next) => {
+  try {
+    const lead = await Lead.create(req.body);
+    res.status(201).json({ success: true, data: lead });
+  } catch (error) {
+    next(error);
   }
+};
 
-  const result = await leadService.bulkImportLeads(leads);
+exports.update = async (req, res, next) => {
+  try {
+    const lead = await Lead.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    res.json({ success: true, data: lead });
+  } catch (error) {
+    next(error);
+  }
+};
 
-  logger.info(`Bulk import: ${result.successful} leads imported`);
-
-  res.json({
-    success: true,
-    data: result,
-    message: `${result.successful} leads imported successfully`
-  });
-});
-
-/**
- * Get lead interaction history
- */
-exports.getLeadHistory = catchAsync(async (req, res) => {
-  const { id } = req.params;
-
-  const history = await leadService.getLeadHistory(id);
-
-  res.json({
-    success: true,
-    data: history
-  });
-});
+exports.delete = async (req, res, next) => {
+  try {
+    await Lead.findByIdAndDelete(req.params.id);
+    res.json({ success: true, message: 'Lead deleted' });
+  } catch (error) {
+    next(error);
+  }
+};

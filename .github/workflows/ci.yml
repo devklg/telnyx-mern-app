@@ -1,17 +1,33 @@
-# BMAD V4 - Continuous Integration
-# Owner: Alex Martinez (DevOps Lead)
-# Created: 2025-10-21
-
-name: CI
+name: CI/CD Pipeline
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [main, develop]
   pull_request:
-    branches: [ main, develop ]
+    branches: [main, develop]
 
 jobs:
-  # TODO: Add CI jobs
-  # - lint
-  # - test
-  # - build
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+      - name: Install dependencies
+        run: |
+          cd backend && npm ci
+          cd ../frontend && npm ci
+      - name: Run tests
+        run: |
+          cd backend && npm test
+          cd ../frontend && npm test
+
+  build:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Build Docker images
+        run: docker-compose build

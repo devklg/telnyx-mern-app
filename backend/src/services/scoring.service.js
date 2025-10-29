@@ -1,81 +1,49 @@
-/**
- * BMAD V4 - Scoring Algorithm
- * 
- * @description Service layer for lead scoring
- * @owner David Rodriguez (Backend Lead)
- * @created 2025-10-21
- */
+const Lead = require('../database/mongodb/schemas/lead.schema');
 
-/**
- * Calculate comprehensive lead score
- */
-exports.calculateScore = async (leadId) => {
-  // TODO: Implement comprehensive scoring algorithm
-  
-  const scores = {
-    behaviorScore: calculateBehaviorScore(leadId),
-    engagementScore: calculateEngagementScore(leadId),
-    qualificationScore: calculateQualificationScore(leadId),
-    demographicScore: calculateDemographicScore(leadId)
-  };
+class ScoringService {
+  async calculate(leadId) {
+    const lead = await Lead.findById(leadId);
+    if (!lead) throw new Error('Lead not found');
 
-  const totalScore = (
-    scores.behaviorScore * 0.3 +
-    scores.engagementScore * 0.3 +
-    scores.qualificationScore * 0.3 +
-    scores.demographicScore * 0.1
-  );
+    let score = 0;
+    
+    // Email validation
+    if (lead.email && this.isValidEmail(lead.email)) score += 20;
+    
+    // Phone validation
+    if (lead.phone) score += 20;
+    
+    // Interaction history
+    if (lead.conversationHistory && lead.conversationHistory.length > 0) {
+      score += 30;
+    }
+    
+    // Status
+    if (lead.status === 'qualified') score += 30;
 
-  return {
-    leadId,
-    totalScore: Math.round(totalScore),
-    breakdown: scores,
-    grade: getScoreGrade(totalScore),
-    calculatedAt: new Date()
-  };
-};
+    lead.qualificationScore = score;
+    await lead.save();
 
-/**
- * Get lead score history
- */
-exports.getLeadScoreHistory = async (leadId) => {
-  // TODO: Implement with database
-  return [];
-};
+    return { leadId, score };
+  }
 
-/**
- * Get top scored leads (leaderboard)
- */
-exports.getLeaderboard = async ({ limit, timeframe }) => {
-  // TODO: Implement with database
-  return [];
-};
+  isValidEmail(email) {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  }
 
-// Scoring components
-function calculateBehaviorScore(leadId) {
-  // TODO: Calculate based on lead behavior
-  return 75;
+  async getByLeadId(leadId) {
+    const lead = await Lead.findById(leadId);
+    return { leadId, score: lead.qualificationScore };
+  }
+
+  async update(leadId, scoreData) {
+    const lead = await Lead.findByIdAndUpdate(
+      leadId,
+      { qualificationScore: scoreData.score },
+      { new: true }
+    );
+    return lead;
+  }
 }
 
-function calculateEngagementScore(leadId) {
-  // TODO: Calculate based on engagement metrics
-  return 80;
-}
-
-function calculateQualificationScore(leadId) {
-  // TODO: Calculate based on qualification criteria
-  return 70;
-}
-
-function calculateDemographicScore(leadId) {
-  // TODO: Calculate based on demographic fit
-  return 85;
-}
-
-function getScoreGrade(score) {
-  if (score >= 90) return 'A+';
-  if (score >= 80) return 'A';
-  if (score >= 70) return 'B';
-  if (score >= 60) return 'C';
-  return 'D';
-}
+module.exports = new ScoringService();

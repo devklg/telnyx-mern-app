@@ -6,7 +6,7 @@ Comprehensive MERN stack CRM system with Telnyx voice agent integration for **Ma
 ## Architecture
 ```
 telnyx-mern-app/
-├── frontend/          # React application with Material-UI + Brand Style Guide
+├── frontend/          # React application with Tailwind CSS + shadcn/ui + Brand Style Guide
 ├── backend/           # Express.js API server with Socket.io
 ├── voice-agent/       # Existing Telnyx voice agent integration
 ├── databases/         # MongoDB, PostgreSQL, ChromaDB configurations

@@ -1,31 +1,9 @@
-/**
- * BMAD V4 - Telnyx Webhook Endpoints
- * 
- * @description Routes for handling Telnyx webhooks
- * @owner David Rodriguez (Backend Lead) & Jennifer Kim (Telnyx)
- * @created 2025-10-21
- */
-
-const express = require('express');
-const router = express.Router();
+const router = require('express').Router();
 const webhookController = require('../controllers/webhook.controller');
+const webhookValidator = require('../security/validation/webhook-validator');
 
-/**
- * @route   POST /api/webhooks/telnyx
- * @desc    Handle Telnyx webhook events
- * @access  Public (verified by Telnyx signature)
- */
-router.post('/telnyx',
-  webhookController.handleTelnyxWebhook
-);
-
-/**
- * @route   POST /api/webhooks/voice-events
- * @desc    Handle voice agent events
- * @access  Private (internal)
- */
-router.post('/voice-events',
-  webhookController.handleVoiceEvents
-);
+router.post('/telnyx', webhookController.handleTelnyxWebhook);
+router.post('/telnyx/voice', webhookController.handleVoiceEvent);
+router.post('/telnyx/messaging', webhookController.handleMessagingEvent);
 
 module.exports = router;

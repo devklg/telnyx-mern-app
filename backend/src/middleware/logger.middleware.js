@@ -1,45 +1,22 @@
-/**
- * BMAD V4 - Request Logger Middleware
- * 
- * @description Logs HTTP requests and responses
- * @owner David Rodriguez (Backend Lead)
- * @created 2025-10-21
- */
+const fs = require('fs');
+const path = require('path');
 
-const logger = require('../utils/logger');
+const logDir = path.join(__dirname, '../../logs');
+if (!fs.existsSync(logDir)) {
+  fs.mkdirSync(logDir, { recursive: true });
+}
 
-/**
- * Request logger middleware
- */
-const requestLogger = (req, res, next) => {
-  const startTime = Date.now();
-
-  // Log request
-  logger.info({
-    type: 'request',
+module.exports = (req, res, next) => {
+  const log = {
+    timestamp: new Date().toISOString(),
     method: req.method,
-    url: req.originalUrl,
+    url: req.url,
     ip: req.ip,
-    userAgent: req.get('user-agent'),
-    userId: req.user?.id || 'anonymous'
-  });
+    userAgent: req.get('user-agent')
+  };
 
-  // Capture response
-  res.on('finish', () => {
-    const duration = Date.now() - startTime;
-    const logLevel = res.statusCode >= 400 ? 'warn' : 'info';
-
-    logger[logLevel]({
-      type: 'response',
-      method: req.method,
-      url: req.originalUrl,
-      statusCode: res.statusCode,
-      duration: `${duration}ms`,
-      userId: req.user?.id || 'anonymous'
-    });
-  });
+  const logFile = path.join(logDir, `${new Date().toISOString().split('T')[0]}.log`);
+  fs.appendFileSync(logFile, JSON.stringify(log) + '\n');
 
   next();
 };
-
-module.exports = requestLogger;

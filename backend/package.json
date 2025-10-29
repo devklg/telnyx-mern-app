@@ -1,60 +1,33 @@
 {
-  "name": "bmad-v4-voice-agent-backend",
+  "name": "bmad-v4-backend",
   "version": "1.0.0",
-  "description": "BMAD v4 Voice Agent Learning System - Backend API",
-  "main": "server.js",
+  "description": "BMAD V4 Lead Qualification Backend API",
+  "main": "src/server.js",
   "scripts": {
-    "start": "node server.js",
-    "dev": "nodemon server.js",
-    "init-db": "node scripts/init-databases.js",
-    "test": "jest --coverage",
-    "lint": "eslint ."
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js",
+    "test": "jest",
+    "migrate": "node src/database/postgresql/migrate.js"
   },
-  "keywords": [
-    "bmad",
-    "voice-agent",
-    "ai",
-    "neo4j",
-    "postgresql",
-    "mongodb",
-    "chromadb",
-    "telnyx"
-  ],
-  "author": "BMAD v4 Development Team",
-  "license": "MIT",
   "dependencies": {
     "express": "^4.18.2",
-    "cors": "^2.8.5",
+    "mongoose": "^8.0.0",
+    "pg": "^8.11.3",
+    "neo4j-driver": "^5.14.0",
+    "redis": "^4.6.10",
+    "telnyx": "^2.3.0",
     "dotenv": "^16.3.1",
+    "cors": "^2.8.5",
     "helmet": "^7.1.0",
     "morgan": "^1.10.0",
-    "compression": "^1.7.4",
-    
-    "neo4j-driver": "^5.14.0",
-    "pg": "^8.11.3",
-    "mongodb": "^6.3.0",
-    "chromadb": "^1.7.3",
-    
-    "@anthropic-ai/sdk": "^0.10.0",
-    "telnyx": "^2.0.0",
-    
-    "express-rate-limit": "^7.1.5",
-    "express-validator": "^7.0.1",
-    "bcryptjs": "^2.4.3",
     "jsonwebtoken": "^9.0.2",
-    
-    "winston": "^3.11.0",
-    "axios": "^1.6.2"
+    "bcryptjs": "^2.4.3",
+    "express-validator": "^7.0.1",
+    "express-rate-limit": "^7.1.5"
   },
   "devDependencies": {
     "nodemon": "^3.0.2",
     "jest": "^29.7.0",
-    "supertest": "^6.3.3",
-    "eslint": "^8.55.0",
-    "prettier": "^3.1.1"
-  },
-  "engines": {
-    "node": ">=18.0.0",
-    "npm": ">=9.0.0"
+    "@types/node": "^20.10.4"
   }
 }

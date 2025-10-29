@@ -1,18 +1,92 @@
-# BMAD V4 - Multi-Service Orchestration
-# Owner: Alex Martinez (DevOps Lead)
-# Created: 2025-10-21
-#
-# TODO: Configure all services
-
 version: '3.8'
 
 services:
-  # TODO: Add services
-  # - backend
-  # - frontend
-  # - voice-agent
-  # - mongodb
-  # - postgres
-  # - neo4j
-  # - chromadb
-  # - redis
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: ../infrastructure/docker/Dockerfile.frontend
+    ports:
+      - "3500:3500"
+    environment:
+      - VITE_API_URL=http://backend:3550/api
+    depends_on:
+      - backend
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: ../infrastructure/docker/Dockerfile.backend
+    ports:
+      - "3550:3550"
+    environment:
+      - NODE_ENV=production
+      - MONGODB_URI=mongodb://mongodb:27017/bmad_v4
+      - POSTGRES_URL=postgresql://postgres:password@postgres:5432/bmad_v4
+      - NEO4J_URI=bolt://neo4j:7687
+      - REDIS_URL=redis://redis:6379
+    depends_on:
+      - mongodb
+      - postgres
+      - neo4j
+      - redis
+      - chroma
+
+  voice-agent:
+    build:
+      context: ./voice-agent
+      dockerfile: ../infrastructure/docker/Dockerfile.voice
+    ports:
+      - "3650:3650"
+    environment:
+      - TELNYX_API_KEY=${TELNYX_API_KEY}
+    depends_on:
+      - backend
+
+  mongodb:
+    image: mongo:7
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+
+  postgres:
+    image: postgres:16-alpine
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_DB=bmad_v4
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  neo4j:
+    image: neo4j:5
+    ports:
+      - "7474:7474"
+      - "7687:7687"
+    environment:
+      - NEO4J_AUTH=neo4j/password
+    volumes:
+      - neo4j_data:/data
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+  chroma:
+    image: chromadb/chroma:latest
+    ports:
+      - "8000:8000"
+    volumes:
+      - chroma_data:/chroma/chroma
+
+volumes:
+  mongodb_data:
+  postgres_data:
+  neo4j_data:
+  redis_data:
+  chroma_data:

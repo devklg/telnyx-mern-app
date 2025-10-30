@@ -7,7 +7,11 @@
     "start": "node src/server.js",
     "dev": "nodemon src/server.js",
     "test": "jest",
-    "migrate": "node src/database/postgresql/migrate.js"
+    "migrate": "node src/database/postgresql/migrate.js",
+    "etl": "node src/database/etl/mongodb-to-postgresql.js",
+    "etl:full": "ETL_FULL_REFRESH=true node src/database/etl/mongodb-to-postgresql.js",
+    "import:leads": "node scripts/importBulkLeads.js",
+    "import:template": "node scripts/importBulkLeads.js --template"
   },
   "dependencies": {
     "express": "^4.18.2",
@@ -15,7 +19,7 @@
     "pg": "^8.11.3",
     "neo4j-driver": "^5.14.0",
     "redis": "^4.6.10",
-    "telnyx": "^2.3.0",
+    "telnyx": "^4.0.2",
     "dotenv": "^16.3.1",
     "cors": "^2.8.5",
     "helmet": "^7.1.0",
@@ -23,7 +27,9 @@
     "jsonwebtoken": "^9.0.2",
     "bcryptjs": "^2.4.3",
     "express-validator": "^7.0.1",
-    "express-rate-limit": "^7.1.5"
+    "express-rate-limit": "^7.1.5",
+    "csv-parser": "^3.0.0",
+    "chromadb": "^1.8.1"
   },
   "devDependencies": {
     "nodemon": "^3.0.2",

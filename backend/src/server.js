@@ -4,6 +4,7 @@ const { Server } = require('socket.io');
 const app = require('./app');
 const { connectDatabases } = require('./config/database');
 const SocketHandler = require('./sockets/socket.handler');
+const telnyxWebSocket = require('./websocket/telnyx-websocket.service');
 
 const PORT = process.env.PORT || 3550;
 
@@ -36,6 +37,14 @@ async function startServer() {
     const socketHandler = new SocketHandler(io);
     console.log('✅ Socket.io initialized');
 
+    // Initialize Telnyx WebSocket connection
+    const telnyxConnected = await telnyxWebSocket.connect(io);
+    if (telnyxConnected) {
+      console.log('✅ Telnyx WebSocket initialized');
+    } else {
+      console.log('⚠️  Telnyx WebSocket not initialized (check configuration)');
+    }
+
     // Start server
     server.listen(PORT, () => {
       console.log(`🚀 Server running on port ${PORT}`);
@@ -47,8 +56,24 @@ async function startServer() {
     // Graceful shutdown
     process.on('SIGTERM', () => {
       console.log('SIGTERM signal received: closing HTTP server');
+
+      // Disconnect Telnyx WebSocket
+      telnyxWebSocket.disconnect();
+
       server.close(() => {
         console.log('HTTP server closed');
+      });
+    });
+
+    process.on('SIGINT', () => {
+      console.log('\nSIGINT signal received: closing HTTP server');
+
+      // Disconnect Telnyx WebSocket
+      telnyxWebSocket.disconnect();
+
+      server.close(() => {
+        console.log('HTTP server closed');
+        process.exit(0);
       });
     });
 

@@ -1,21 +1,26 @@
 const Telnyx = require('telnyx');
+const telnyxConfig = require('../config/telnyx.config');
 
 /**
  * Telnyx Service for Voice Call Management
  * Handles all Telnyx API interactions for call initiation, control, transfer, and recording
  *
  * @author David Rodriguez - Backend Development Lead
+ * @author Jennifer Kim - Telnyx Integration Specialist
  * @integration Telnyx Voice API
  */
 
 class TelnyxService {
 
   constructor() {
-    if (!process.env.TELNYX_API_KEY) {
-      console.warn('⚠️  TELNYX_API_KEY not configured. Telnyx features will be limited.');
+    this.config = telnyxConfig;
+
+    if (!this.config.isConfigured()) {
+      console.warn('⚠️  Telnyx not properly configured. Features will be limited.');
       this.client = null;
     } else {
-      this.client = Telnyx(process.env.TELNYX_API_KEY);
+      this.client = Telnyx(this.config.config.apiKey);
+      console.log('✅ Telnyx service initialized');
     }
   }
 
@@ -28,20 +33,18 @@ class TelnyxService {
         throw new Error('Telnyx client not initialized');
       }
 
-      const callData = {
-        connection_id: process.env.TELNYX_CONNECTION_ID,
-        to: phoneNumber,
-        from: process.env.TELNYX_PHONE_NUMBER,
-        webhook_url: `${process.env.API_BASE_URL}/api/webhooks/telnyx`,
-        webhook_url_method: 'POST',
-        custom_headers: [{
-          name: 'X-Call-ID',
-          value: callId.toString()
-        }],
-        ...metadata
-      };
+      // Get call configuration from config module
+      const callData = this.config.getCallConfig(phoneNumber, callId, metadata);
+
+      // Add custom headers for call tracking
+      callData.custom_headers = [{
+        name: 'X-Call-ID',
+        value: callId.toString()
+      }];
 
       const response = await this.client.calls.create(callData);
+
+      console.log(`[Telnyx] Call initiated: ${response.data.id} to ${phoneNumber}`);
 
       return {
         success: true,
@@ -112,7 +115,7 @@ class TelnyxService {
   }
 
   /**
-   * Create conference call for hot transfer
+   * Create conference call for hot transfer to Kevin
    */
   async createConferenceCall(callControlId, kevinPhoneNumber, conferenceName) {
     try {
@@ -120,24 +123,37 @@ class TelnyxService {
         throw new Error('Telnyx client not initialized');
       }
 
+      // Use Kevin's phone number from config if not provided
+      const kevinNumber = kevinPhoneNumber || this.config.config.kevinPhoneNumber;
+
+      if (!kevinNumber) {
+        throw new Error('Kevin phone number not configured');
+      }
+
       // Create conference and add original caller
       await this.client.calls.transfer(callControlId, {
         to: `conference:${conferenceName}`
       });
 
+      console.log(`[Telnyx] Caller transferred to conference: ${conferenceName}`);
+
       // Dial Kevin and add to conference
-      const kevinCall = await this.client.calls.create({
-        connection_id: process.env.TELNYX_CONNECTION_ID,
-        to: kevinPhoneNumber || process.env.KEVIN_PHONE_NUMBER,
-        from: process.env.TELNYX_PHONE_NUMBER,
-        webhook_url: `${process.env.API_BASE_URL}/api/webhooks/telnyx`,
-        webhook_url_method: 'POST'
-      });
+      const kevinCallData = this.config.getCallConfig(
+        kevinNumber,
+        `kevin-transfer-${Date.now()}`,
+        { transferType: 'hot', conferenceName }
+      );
+
+      const kevinCall = await this.client.calls.create(kevinCallData);
+
+      console.log(`[Telnyx] Calling Kevin at ${kevinNumber}: ${kevinCall.data.id}`);
 
       // Join Kevin to conference
       await this.client.calls.transfer(kevinCall.data.call_control_id, {
         to: `conference:${conferenceName}`
       });
+
+      console.log(`[Telnyx] Conference created: ${conferenceName} with Kevin`);
 
       return {
         success: true,
@@ -160,20 +176,37 @@ class TelnyxService {
   /**
    * Start call recording
    */
-  async startRecording(callControlId, format = 'mp3', channels = 'dual') {
+  async startRecording(callControlId, format = null, channels = null) {
     try {
       if (!this.client) {
         throw new Error('Telnyx client not initialized');
       }
 
-      const response = await this.client.calls.record_start(callControlId, {
-        format,
-        channels
-      });
+      // Check if recording is enabled
+      if (!this.config.config.enableRecording) {
+        console.log('[Telnyx] Recording disabled by configuration');
+        return {
+          success: false,
+          error: 'Recording is disabled in configuration'
+        };
+      }
+
+      // Use config defaults if not provided
+      const recordingConfig = this.config.getRecordingConfig();
+      const recordingOptions = {
+        format: format || recordingConfig.format,
+        channels: channels || recordingConfig.channels
+      };
+
+      const response = await this.client.calls.record_start(callControlId, recordingOptions);
+
+      console.log(`[Telnyx] Recording started: ${response.data.recording_id}`);
 
       return {
         success: true,
         recordingId: response.data.recording_id,
+        format: recordingOptions.format,
+        channels: recordingOptions.channels,
         message: 'Recording started successfully'
       };
 
@@ -428,6 +461,48 @@ class TelnyxService {
         error: error.message
       };
     }
+  }
+
+  /**
+   * Test Telnyx API connectivity
+   */
+  async testConnection() {
+    return await this.config.testConnection();
+  }
+
+  /**
+   * Get service configuration (masked for security)
+   */
+  getConfiguration() {
+    return this.config.getConfig();
+  }
+
+  /**
+   * Check if service is properly configured
+   */
+  isConfigured() {
+    return this.config.isConfigured();
+  }
+
+  /**
+   * Check if advanced features are available
+   */
+  hasAdvancedFeatures() {
+    return this.config.hasAdvancedFeatures();
+  }
+
+  /**
+   * Get webhook URL
+   */
+  getWebhookUrl() {
+    return this.config.getWebhookUrl();
+  }
+
+  /**
+   * Validate webhook signature
+   */
+  validateWebhookSignature(payload, signature, timestamp) {
+    return this.config.validateWebhookSignature(payload, signature, timestamp);
   }
 }
 

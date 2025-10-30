@@ -45,6 +45,16 @@ async function startServer() {
       console.log('⚠️  Telnyx WebSocket not initialized (check configuration)');
     }
 
+    // Initialize Gmail Lead Import Cron Job (James Taylor)
+    const gmailConfig = require('./config/gmail.config');
+    if (gmailConfig.isConfigured()) {
+      const gmailImportCron = require('./cron/gmailLeadImport');
+      gmailImportCron.start();
+      console.log('✅ Gmail Lead Import cron job started');
+    } else {
+      console.log('⚠️  Gmail Lead Import not configured (set GMAIL_* env variables)');
+    }
+
     // Start server
     server.listen(PORT, () => {
       console.log(`🚀 Server running on port ${PORT}`);
@@ -57,6 +67,13 @@ async function startServer() {
     process.on('SIGTERM', () => {
       console.log('SIGTERM signal received: closing HTTP server');
 
+      // Stop Gmail cron job
+      if (gmailConfig.isConfigured()) {
+        const gmailImportCron = require('./cron/gmailLeadImport');
+        gmailImportCron.stop();
+        console.log('Gmail cron job stopped');
+      }
+
       // Disconnect Telnyx WebSocket
       telnyxWebSocket.disconnect();
 
@@ -67,6 +84,13 @@ async function startServer() {
 
     process.on('SIGINT', () => {
       console.log('\nSIGINT signal received: closing HTTP server');
+
+      // Stop Gmail cron job
+      if (gmailConfig.isConfigured()) {
+        const gmailImportCron = require('./cron/gmailLeadImport');
+        gmailImportCron.stop();
+        console.log('Gmail cron job stopped');
+      }
 
       // Disconnect Telnyx WebSocket
       telnyxWebSocket.disconnect();

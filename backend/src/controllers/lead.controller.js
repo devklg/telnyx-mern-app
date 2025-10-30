@@ -314,3 +314,300 @@ exports.addNote = async (req, res, next) => {
     next(error);
   }
 };
+
+// ============================================
+// JAMES TAYLOR - LEAD QUEUE MANAGEMENT
+// ============================================
+
+const leadQueueService = require('../services/leadQueueService');
+const leadLifecycleService = require('../services/leadLifecycleService');
+const gmailService = require('../services/gmailService');
+const leadImporter = require('../services/leadImporter');
+const gmailImportCron = require('../cron/gmailLeadImport');
+
+/**
+ * Get next lead from queue for calling
+ */
+exports.getNextLead = async (req, res, next) => {
+  try {
+    const lead = await leadQueueService.getNextLead();
+
+    if (!lead) {
+      return res.json({
+        success: true,
+        data: null,
+        message: 'No leads available in queue'
+      });
+    }
+
+    // Reserve lead for calling
+    await leadQueueService.reserveLead(lead._id);
+
+    res.json({
+      success: true,
+      data: lead,
+      message: 'Next lead retrieved successfully'
+    });
+
+  } catch (error) {
+    console.error('Get next lead error:', error);
+    next(error);
+  }
+};
+
+/**
+ * Get queue status
+ */
+exports.getQueueStatus = async (req, res, next) => {
+  try {
+    const status = await leadQueueService.getQueueStatus();
+
+    res.json({
+      success: true,
+      data: status
+    });
+
+  } catch (error) {
+    console.error('Get queue status error:', error);
+    next(error);
+  }
+};
+
+/**
+ * Get queue health metrics
+ */
+exports.getQueueHealth = async (req, res, next) => {
+  try {
+    const health = await leadQueueService.getQueueHealth();
+
+    res.json({
+      success: true,
+      data: health
+    });
+
+  } catch (error) {
+    console.error('Get queue health error:', error);
+    next(error);
+  }
+};
+
+/**
+ * Release lead reservation
+ */
+exports.releaseLead = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+
+    await leadQueueService.releaseLead(id);
+
+    res.json({
+      success: true,
+      message: 'Lead released successfully'
+    });
+
+  } catch (error) {
+    console.error('Release lead error:', error);
+    next(error);
+  }
+};
+
+/**
+ * Update lead status (lifecycle)
+ */
+exports.updateStatus = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { status, note, qualificationScore, nextFollowUpDate, reason, conversionValue } = req.body;
+
+    if (!status) {
+      return res.status(400).json({
+        success: false,
+        error: 'Status is required'
+      });
+    }
+
+    const lead = await leadLifecycleService.updateLeadStatus(id, status, {
+      note,
+      qualificationScore,
+      nextFollowUpDate,
+      reason,
+      conversionValue
+    });
+
+    res.json({
+      success: true,
+      data: lead,
+      message: 'Lead status updated successfully'
+    });
+
+  } catch (error) {
+    console.error('Update lead status error:', error);
+    next(error);
+  }
+};
+
+/**
+ * Schedule follow-up for lead
+ */
+exports.scheduleFollowUp = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { followUpDate, note } = req.body;
+
+    if (!followUpDate) {
+      return res.status(400).json({
+        success: false,
+        error: 'Follow-up date is required'
+      });
+    }
+
+    const lead = await leadLifecycleService.scheduleFollowUp(id, followUpDate, note);
+
+    res.json({
+      success: true,
+      data: lead,
+      message: 'Follow-up scheduled successfully'
+    });
+
+  } catch (error) {
+    console.error('Schedule follow-up error:', error);
+    next(error);
+  }
+};
+
+/**
+ * Add lead to do-not-call list
+ */
+exports.addToDoNotCall = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { reason } = req.body;
+
+    const lead = await leadLifecycleService.addToDoNotCall(id, reason);
+
+    res.json({
+      success: true,
+      data: lead,
+      message: 'Lead added to Do Not Call list'
+    });
+
+  } catch (error) {
+    console.error('Add to DNC error:', error);
+    next(error);
+  }
+};
+
+/**
+ * Get today's follow-ups
+ */
+exports.getTodayFollowUps = async (req, res, next) => {
+  try {
+    const followUps = await leadLifecycleService.getTodayFollowUps();
+
+    res.json({
+      success: true,
+      data: followUps,
+      count: followUps.length
+    });
+
+  } catch (error) {
+    console.error('Get today follow-ups error:', error);
+    next(error);
+  }
+};
+
+/**
+ * Get overdue follow-ups
+ */
+exports.getOverdueFollowUps = async (req, res, next) => {
+  try {
+    const followUps = await leadLifecycleService.getOverdueFollowUps();
+
+    res.json({
+      success: true,
+      data: followUps,
+      count: followUps.length
+    });
+
+  } catch (error) {
+    console.error('Get overdue follow-ups error:', error);
+    next(error);
+  }
+};
+
+/**
+ * Get lifecycle statistics
+ */
+exports.getLifecycleStats = async (req, res, next) => {
+  try {
+    const stats = await leadLifecycleService.getLifecycleStats();
+
+    res.json({
+      success: true,
+      data: stats
+    });
+
+  } catch (error) {
+    console.error('Get lifecycle stats error:', error);
+    next(error);
+  }
+};
+
+// ============================================
+// GMAIL IMPORT MANAGEMENT
+// ============================================
+
+/**
+ * Trigger manual Gmail import
+ */
+exports.triggerGmailImport = async (req, res, next) => {
+  try {
+    const result = await gmailImportCron.runManualImport();
+
+    res.json({
+      success: true,
+      data: result,
+      message: 'Gmail import completed'
+    });
+
+  } catch (error) {
+    console.error('Gmail import error:', error);
+    next(error);
+  }
+};
+
+/**
+ * Get Gmail import statistics
+ */
+exports.getGmailImportStats = async (req, res, next) => {
+  try {
+    const stats = gmailImportCron.getStats();
+
+    res.json({
+      success: true,
+      data: stats
+    });
+
+  } catch (error) {
+    console.error('Get Gmail stats error:', error);
+    next(error);
+  }
+};
+
+/**
+ * Test Gmail connection
+ */
+exports.testGmailConnection = async (req, res, next) => {
+  try {
+    const result = await gmailService.testConnection();
+
+    res.json({
+      success: result.success,
+      data: result
+    });
+
+  } catch (error) {
+    console.error('Test Gmail connection error:', error);
+    next(error);
+  }
+};

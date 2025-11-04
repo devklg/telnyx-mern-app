@@ -66,6 +66,7 @@ app.use('/api/dashboard', require('./routes/dashboard.routes'));
 app.use('/api/agent', require('./routes/agent.routes'));
 app.use('/api/kevin', require('./routes/kevin.routes'));
 app.use('/api/learning', require('./routes/learning.routes'));
+app.use('/api/graph-rag', require('./routes/graph-rag.routes'));
 
 // Health check
 app.get('/health', (req, res) => {

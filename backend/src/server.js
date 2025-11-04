@@ -45,6 +45,16 @@ async function startServer() {
       console.log('⚠️  Telnyx WebSocket not initialized (check configuration)');
     }
 
+    // Initialize Graph RAG system
+    const { initializeGraphRAG } = require('./middleware/auto-learning.middleware');
+    await initializeGraphRAG();
+    console.log('✅ Graph RAG system initialized');
+
+    // Initialize Graph RAG batch learning cron job
+    const graphRAGBatchLearning = require('./cron/graphRAGBatchLearning');
+    graphRAGBatchLearning.start();
+    console.log('✅ Graph RAG batch learning cron job started');
+
     // Initialize Gmail Lead Import Cron Job (James Taylor)
     const gmailConfig = require('./config/gmail.config');
     if (gmailConfig.isConfigured()) {
@@ -67,6 +77,10 @@ async function startServer() {
     process.on('SIGTERM', () => {
       console.log('SIGTERM signal received: closing HTTP server');
 
+      // Stop Graph RAG cron job
+      graphRAGBatchLearning.stop();
+      console.log('Graph RAG cron job stopped');
+
       // Stop Gmail cron job
       if (gmailConfig.isConfigured()) {
         const gmailImportCron = require('./cron/gmailLeadImport');
@@ -84,6 +98,10 @@ async function startServer() {
 
     process.on('SIGINT', () => {
       console.log('\nSIGINT signal received: closing HTTP server');
+
+      // Stop Graph RAG cron job
+      graphRAGBatchLearning.stop();
+      console.log('Graph RAG cron job stopped');
 
       // Stop Gmail cron job
       if (gmailConfig.isConfigured()) {

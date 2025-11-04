@@ -137,16 +137,30 @@ exports.startCall = async (req, res, next) => {
     const callLog = new CallLog(callData);
     await callLog.save();
 
+    // Prepare call metadata with Graph RAG knowledge if available
+    const callMetadata = {
+      callLogId: callLog.callLogId,
+      leadId: lead._id,
+      kevinAvailable
+    };
+
+    // Include Graph RAG knowledge for the voice agent
+    if (req.graphKnowledge) {
+      callMetadata.graphKnowledge = {
+        recommendations: req.graphKnowledge.recommendations,
+        industryInsights: req.graphKnowledge.industryInsights,
+        topStrategies: req.graphKnowledge.successfulStrategies?.slice(0, 3),
+        commonObjections: req.graphKnowledge.relevantObjections?.slice(0, 5),
+        effectivePatterns: req.graphKnowledge.conversationPatterns?.slice(0, 3)
+      };
+    }
+
     // Initiate Telnyx call
     const telnyxResult = await telnyxService.initiateCall(
       phoneNumber,
       callLog._id,
       {
-        client_state: JSON.stringify({
-          callLogId: callLog.callLogId,
-          leadId: lead._id,
-          kevinAvailable
-        })
+        client_state: JSON.stringify(callMetadata)
       }
     );
 

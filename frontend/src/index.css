@@ -61,3 +61,159 @@
     @apply bg-gradient-to-r from-primary-500 to-accent-400 bg-clip-text text-transparent;
   }
 }
+
+/* Print Styles */
+@media print {
+  /* Hide non-printable elements */
+  .no-print,
+  .no-print *,
+  button:not(.print-button),
+  nav,
+  .sidebar,
+  header .actions,
+  .page-header .actions,
+  .report-type-selector {
+    display: none !important;
+  }
+
+  /* Page setup */
+  @page {
+    margin: 1.5cm;
+    size: A4 portrait;
+  }
+
+  body {
+    font-size: 11pt;
+    line-height: 1.5;
+    color: #000 !important;
+    background: #fff !important;
+  }
+
+  /* Force white backgrounds for print */
+  * {
+    background: transparent !important;
+    color: #000 !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+  }
+
+  /* Tables */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    page-break-inside: auto;
+    border: 1px solid #000 !important;
+  }
+
+  tr {
+    page-break-inside: avoid;
+    page-break-after: auto;
+  }
+
+  thead {
+    display: table-header-group;
+  }
+
+  tfoot {
+    display: table-footer-group;
+  }
+
+  th, td {
+    padding: 8px !important;
+    border: 1px solid #000 !important;
+    background: #fff !important;
+  }
+
+  th {
+    background: #f3f4f6 !important;
+    font-weight: bold !important;
+  }
+
+  /* Page breaks */
+  .page-break {
+    page-break-after: always;
+  }
+
+  .avoid-break {
+    page-break-inside: avoid;
+  }
+
+  /* Headers */
+  h1, h2, h3, h4, h5, h6 {
+    page-break-after: avoid;
+    color: #000 !important;
+    font-weight: bold !important;
+  }
+
+  /* Links */
+  a {
+    color: #000 !important;
+    text-decoration: underline;
+  }
+
+  /* Cards and panels */
+  .card,
+  .panel,
+  .report-header,
+  .report-content {
+    border: 1px solid #000 !important;
+    background: #fff !important;
+    box-shadow: none !important;
+  }
+
+  /* Status badges - keep some color for clarity */
+  .bg-green-100 {
+    background: #d1fae5 !important;
+    border: 1px solid #10b981 !important;
+  }
+
+  .bg-blue-100 {
+    background: #dbeafe !important;
+    border: 1px solid #3b82f6 !important;
+  }
+
+  .bg-yellow-100 {
+    background: #fef3c7 !important;
+    border: 1px solid #f59e0b !important;
+  }
+
+  .bg-red-100 {
+    background: #fee2e2 !important;
+    border: 1px solid #ef4444 !important;
+  }
+
+  .bg-gray-50 {
+    background: #f9fafb !important;
+    border: 1px solid #e5e7eb !important;
+  }
+
+  /* Charts - ensure visibility */
+  .recharts-wrapper {
+    page-break-inside: avoid;
+  }
+
+  svg {
+    max-width: 100%;
+    height: auto;
+  }
+
+  /* Report specific */
+  .printable-report {
+    background: #fff !important;
+  }
+
+  .report-header {
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #000 !important;
+  }
+
+  .report-footer {
+    margin-top: 20px;
+    padding-top: 10px;
+    border-top: 1px solid #000 !important;
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+  }
+}

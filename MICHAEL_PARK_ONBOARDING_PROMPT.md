@@ -101,9 +101,9 @@ Body:      'Poppins', sans-serif   (Clean, readable)
 
 ## 🚀 ONBOARDING STEPS
 
-### **PHASE 1: Setup & Environment (Day 1 - Morning)**
+### **PHASE 1: Setup & Environment**
 
-#### **Step 1.1: Read Your Story File (10 minutes)**
+#### **Step 1.1: Read Your Story File**
 ```bash
 # You are currently in: /home/user/telnyx-mern-app
 cat MICHAEL_PARK_FRONTEND_STORY.md
@@ -115,7 +115,7 @@ Read and understand:
 - Definition of done criteria
 - Your role as foundation component
 
-#### **Step 1.2: Read Essential Documentation (20 minutes)**
+#### **Step 1.2: Read Essential Documentation**
 ```bash
 # Read in this order:
 cat AGENT-ONBOARDING-CHECKLIST.md      # General onboarding
@@ -125,7 +125,7 @@ cat GIT-WORKFLOW.md                    # Commit standards
 cat PROJECT-SUMMARY.md                 # Architecture overview
 ```
 
-#### **Step 1.3: Setup Git Branch (5 minutes)**
+#### **Step 1.3: Setup Git Branch**
 ```bash
 # Verify you're in the repository
 pwd  # Should show: /home/user/telnyx-mern-app
@@ -141,7 +141,7 @@ git push -u origin agent/michael-park-frontend
 git branch  # Should show: * agent/michael-park-frontend
 ```
 
-#### **Step 1.4: Explore Current Frontend Structure (10 minutes)**
+#### **Step 1.4: Explore Current Frontend Structure**
 ```bash
 # Navigate to frontend directory
 cd frontend
@@ -163,7 +163,7 @@ cat src/index.css
 
 ---
 
-### **PHASE 2: Foundation Setup (Day 1 - Afternoon)**
+### **PHASE 2: Foundation Setup**
 
 #### **Step 2.1: Install Dependencies**
 ```bash
@@ -321,7 +321,7 @@ npm run dev
 
 ---
 
-### **PHASE 3: Component Library Setup (Day 2)**
+### **PHASE 3: Component Library Setup**
 
 #### **Step 3.1: Create Component Structure**
 ```bash
@@ -586,7 +586,7 @@ export function VoiceAgentControlPanel() {
 
 ---
 
-### **PHASE 4: Routing & Pages (Day 3)**
+### **PHASE 4: Routing & Pages**
 
 #### **Step 4.1: Update App.jsx with Routes**
 
@@ -679,7 +679,7 @@ export function CallsPage() {
 
 ---
 
-### **PHASE 5: First Commit & PR (Day 3 - End of Day)**
+### **PHASE 5: First Commit & PR**
 
 #### **Step 5.1: Review Your Changes**
 ```bash
@@ -783,7 +783,7 @@ This foundation is ready for:
 
 ## 📅 DAILY WORKFLOW (Ongoing)
 
-### **Morning Routine (10 minutes)**
+### **Morning Routine**
 ```bash
 # Navigate to project
 cd /home/user/telnyx-mern-app
@@ -1102,7 +1102,7 @@ You are the **foundation** for the entire frontend experience. Your work in esta
 
 ### **You've Got This!**
 
-This is a well-structured project with clear requirements. Your story file provides excellent examples. Follow this onboarding prompt step-by-step, and you'll have the foundation running in 2-3 days.
+This is a well-structured project with clear requirements. Your story file provides excellent examples. Follow this onboarding prompt step-by-step to get the foundation running.
 
 **Questions?**
 - Re-read this prompt

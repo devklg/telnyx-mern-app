@@ -1,63 +1,78 @@
 @import "tailwindcss";
 
+/* Import Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Poppins:wght@300;400;500;600;700&display=swap');
+
 @theme {
   /* Magnificent Worldwide Brand Colors */
-  --color-primary-50: #eff6ff;
-  --color-primary-100: #dbeafe;
-  --color-primary-200: #bfdbfe;
-  --color-primary-300: #93c5fd;
-  --color-primary-400: #60a5fa;
-  --color-primary-500: #3b82f6;
-  --color-primary-600: #2563eb;
-  --color-primary-700: #1d4ed8;
-  --color-primary-800: #1e40af;
-  --color-primary-900: #1e3a8a;
-  
-  --color-accent-50: #fefce8;
-  --color-accent-100: #fef9c3;
-  --color-accent-200: #fef08a;
-  --color-accent-300: #fde047;
-  --color-accent-400: #facc15;
-  --color-accent-500: #eab308;
-  --color-accent-600: #ca8a04;
-  --color-accent-700: #a16207;
-  --color-accent-800: #854d0e;
-  --color-accent-900: #713f12;
-  
-  --color-success: #10b981;
-  --color-warning: #f59e0b;
-  --color-danger: #ef4444;
-  
+  --color-magnificent-primary: #3b82f6;
+  --color-magnificent-secondary: #facc15;
+  --color-magnificent-dark: #0f172a;
+
+  /* shadcn/ui theme variables */
+  --color-background: #0f172a;
+  --color-foreground: #f8fafc;
+  --color-card: #1e293b;
+  --color-card-foreground: #f8fafc;
+  --color-popover: #1e293b;
+  --color-popover-foreground: #f8fafc;
+  --color-primary: #3b82f6;
+  --color-primary-foreground: #f8fafc;
+  --color-secondary: #facc15;
+  --color-secondary-foreground: #0f172a;
+  --color-muted: #334155;
+  --color-muted-foreground: #94a3b8;
+  --color-accent: #334155;
+  --color-accent-foreground: #f8fafc;
+  --color-destructive: #ef4444;
+  --color-destructive-foreground: #f8fafc;
+  --color-border: #334155;
+  --color-input: #1e293b;
+  --color-ring: #3b82f6;
+
+  /* Radius */
+  --radius: 0.5rem;
+
   /* Typography */
   --font-heading: "Orbitron", sans-serif;
   --font-body: "Poppins", sans-serif;
+  --font-sans: "Poppins", system-ui, sans-serif;
 }
 
 @layer base {
+  * {
+    @apply border-border;
+  }
+
   body {
-    @apply bg-slate-950 text-slate-50;
+    @apply bg-background text-foreground;
     font-family: var(--font-body);
   }
-  
+
   h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-heading);
   }
 }
 
-@layer components {
-  .btn-primary {
-    @apply bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition-colors;
-  }
-  
-  .btn-secondary {
-    @apply bg-slate-800 text-slate-200 px-4 py-2 rounded-lg hover:bg-slate-700 transition-colors;
-  }
-  
-  .card {
-    @apply bg-slate-900/50 backdrop-blur-sm rounded-lg shadow-xl border border-slate-800 p-6;
-  }
-  
-  .gradient-text {
-    @apply bg-gradient-to-r from-primary-500 to-accent-400 bg-clip-text text-transparent;
-  }
+/* Magnificent Worldwide Custom Classes */
+@utility magnificent-gradient {
+  background: linear-gradient(135deg, #3b82f6 0%, #facc15 100%);
+}
+
+@utility magnificent-gradient-border {
+  border: 1px solid transparent;
+  background:
+    linear-gradient(#0f172a, #0f172a) padding-box,
+    linear-gradient(135deg, #3b82f6, #facc15) border-box;
+}
+
+@utility magnificent-text-gradient {
+  background: linear-gradient(135deg, #3b82f6 0%, #facc15 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+@utility magnificent-glow {
+  box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
 }

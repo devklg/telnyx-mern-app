@@ -67,8 +67,6 @@ app.use('/api/agent', require('./routes/agent.routes'));
 app.use('/api/kevin', require('./routes/kevin.routes'));
 app.use('/api/learning', require('./routes/learning.routes'));
 app.use('/api/graph-rag', require('./routes/graph-rag.routes'));
-app.use('/api/recommendations', require('./routes/recommendation.routes'));
-app.use('/api/dnc', require('./routes/dnc.routes')); // Story 3.8: DNC Compliance
 
 // Health check
 app.get('/health', (req, res) => {
